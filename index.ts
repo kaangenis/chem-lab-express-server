@@ -7,6 +7,7 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
 import adminRouter from "./routes/admin_route";
+import organizationRouter from "./routes/organization_route";
 
 dotenv.config();
 
@@ -108,6 +109,7 @@ app.get("/", (req: any, res: any) => {
 
 
 app.use("/api/admin", adminRouter);
+app.use("/api/organization", organizationRouter);
 
 
 server.listen(port, () => {

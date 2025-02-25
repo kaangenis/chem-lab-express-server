@@ -7,7 +7,6 @@ const OrganizationInfoSchema = new mongoose.Schema({
     organizationHolderUID: String,
     organizationUsername: String,
     organizationEmail: String,
-    organizationPassword: String,
     organizationPhone: String,
     organizationAddress: String,
     organizationCity: String,
@@ -24,6 +23,7 @@ const OrganizationInfoSchema = new mongoose.Schema({
 
 const OrganizationHolderSchema = new mongoose.Schema({
     organizationHolderUID: String,
+    organizationId: String,
     organizationHolderFullname: String,
     organizationHolderEmail: String,
     organizationHolderPhone: String,
@@ -35,11 +35,29 @@ const OrganizationHolderSchema = new mongoose.Schema({
     updatedAt: Number,
 });
 
+const OrganizationWorkerSchema = new mongoose.Schema({
+    organizationWorkerUID: String,
+    organizationId: String,
+    organizationWorkerFullname: String,
+    organizationWorkerEmail: String,
+    organizationWorkerPhone: String,
+    organizationWorkerPassword: String,
+    organizationWorkerRole: String,
+    organizationWorkerStatus: Boolean,
+    organizationWorkerIsDeleted: Boolean,
+    organizationWorkerWhitelist: Array,
+    organizationWorkerBlacklist: Array,
+    createdAt: Number,
+    updatedAt: Number,
+});
+
 const OrganizationInfoModel = mongoose.model("OrganizationInfo", OrganizationInfoSchema);
 const OrganizationHolderModel = mongoose.model("OrganizationHolderInfo", OrganizationHolderSchema);
+const OrganizationWorkerModel = mongoose.model("OrganizationWorkerInfo", OrganizationWorkerSchema);
 
 export {
     OrganizationInfoModel,
     OrganizationHolderModel,
+    OrganizationWorkerModel,
 };
 

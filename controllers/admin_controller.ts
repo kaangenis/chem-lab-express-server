@@ -527,7 +527,6 @@ export async function createOrganization(req: any, res: any) {
         organizationUsername,
         organizationEmail,
         organizationHolderEmail,
-        organizationPassword,
         organizationHolderPassword,
         organizationPhone,
         organizationHolderPhone,
@@ -545,7 +544,6 @@ export async function createOrganization(req: any, res: any) {
         !organizationHolderPhone ||
         !organizationUsername ||
         !organizationEmail ||
-        !organizationPassword ||
         !organizationPhone ||
         !organizationAddress ||
         !organizationCity ||
@@ -561,6 +559,24 @@ export async function createOrganization(req: any, res: any) {
 
     const organizationExistEmail = await OrganizationInfoModel.findOne({ organizationEmail: organizationEmail });
     const organizationExistUsername = await OrganizationInfoModel.findOne({ organizationUsername: organizationUsername });
+    const organizationHolderExistEmail = await OrganizationHolderModel.findOne({ organizationHolderEmail: organizationHolderEmail });
+    const organizationHolderExistPhone = await OrganizationHolderModel.findOne({ organizationHolderPhone: organizationHolderPhone });
+
+    if (organizationHolderExistEmail) {
+        res.status(400).json({
+            status: false,
+            msg: "Organization Holder Already Exist with this Email."
+        });
+        return;
+    };
+
+    if (organizationHolderExistPhone) {
+        res.status(400).json({
+            status: false,
+            msg: "Organization Holder Already Exist with this Phone."
+        });
+        return;
+    };
 
     if (organizationExistEmail) {
         res.status(400).json({
@@ -579,7 +595,7 @@ export async function createOrganization(req: any, res: any) {
     };
 
 
-    if (organizationPassword.length < 6) {
+    if (organizationHolderPassword.length < 6) {
         res.status(400).json({
             status: false,
             msg: "Password must be at least 6 characters."
@@ -588,6 +604,14 @@ export async function createOrganization(req: any, res: any) {
     };
 
     if (!organizationEmail.includes("@") || !organizationEmail.includes(".")) {
+        res.status(400).json({
+            status: false,
+            msg: "Invalid Email Address."
+        });
+        return;
+    };
+
+    if (!organizationHolderEmail.includes("@") || !organizationHolderEmail.includes(".")) {
         res.status(400).json({
             status: false,
             msg: "Invalid Email Address."
@@ -637,10 +661,11 @@ export async function createOrganization(req: any, res: any) {
             const newOrganizationHolder = new OrganizationHolderModel({
                 organizationHolderUID: OrganizationHolderUID,
                 organizationHolderFullname: organizationHolderFullName,
+                organizationId: '',
                 organizationHolderEmail: organizationHolderEmail,
                 organizationHolderPhone: organizationHolderPhone,
                 organizationHolderPassword: organizationHolderPassword,
-                organizationHolderRole: "ADMIN",
+                organizationHolderRole: "OWNER",
                 organizationHolderStatus: true,
                 organizationHolderIsDeleted: false,
                 createdAt: req.currentTime,
@@ -665,7 +690,6 @@ export async function createOrganization(req: any, res: any) {
                 organizationHolderUID: user.uid,
                 organizationUsername: organizationUsername,
                 organizationEmail: organizationEmail,
-                organizationPassword: organizationPassword,
                 organizationPhone: organizationPhone,
                 organizationAddress: organizationAddress,
                 organizationCity: organizationCity,
@@ -682,7 +706,22 @@ export async function createOrganization(req: any, res: any) {
 
             try {
                 await newOrganization.save();
-                res.status(201).json({ status: true, msg: "Organization Created Successfully." });
+                const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: OrganizationHolderUID });
+                if (findHolder) {
+                    findHolder.organizationId = newOrganization.organizationId;
+                    try {
+                        await findHolder.save();
+                        res.status(201).json({ status: true, msg: "Organization Created Successfully." });
+                        return;
+                    } catch (error: any) {
+                        res.status(400).json({
+                            status: false,
+                            msg: "Error while creating Organization.",
+                            error: error.message,
+                        });
+                        return;
+                    };
+                };
             }
             catch (error: any) {
                 res.status(400).json({
