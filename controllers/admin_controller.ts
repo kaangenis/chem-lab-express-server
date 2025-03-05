@@ -184,7 +184,7 @@ export async function getAdminData(req: any, res: any) {
             return;
         }
 
-        if (!user.uid) {
+        if (!user.UID) {
             res.status(400).json({
                 status: false,
                 msg: "Admin Not Found."
