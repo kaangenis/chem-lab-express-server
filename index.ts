@@ -70,7 +70,9 @@ const io = require("socket.io")(server, {
 
 
 console.log("Mongo Config Started");
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/chem_lab_mongo_db';
+// const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/chem_lab_mongo_db';
+const MONGO_URI = "mongodb://mongodb:27017/chem-lab-db";
+
 mongoose
   .connect(MONGO_URI, {
     //useNewUrlParser: true,
