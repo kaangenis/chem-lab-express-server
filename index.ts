@@ -57,7 +57,7 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan("combined"));
 app.use(limiter);
-const port = 5547;
+const port = 5226;
 
 const server = http.createServer(app);
 
