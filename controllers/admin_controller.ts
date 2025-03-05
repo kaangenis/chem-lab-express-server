@@ -192,7 +192,7 @@ export async function getAdminData(req: any, res: any) {
             return;
         }
 
-        const userindb = await SystemAdminModel.findOne({ UID: user.uid })
+        const userindb = await SystemAdminModel.findOne({ UID: user.UID })
 
         if (!userindb) {
             res.status(400).json({
