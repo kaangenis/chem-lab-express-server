@@ -9,7 +9,7 @@ services:
     volumes:
       - mongo-data:/data/db
     healthcheck:
-      test: ["CMD", "mongo", "--eval", "db.runCommand({ ping: 1 })"]
+      test: echo 'db.runCommand({ ping: 1 })' | mongosh --quiet
       interval: 10s
       timeout: 5s
       retries: 5
@@ -21,7 +21,8 @@ services:
     ports:
       - "5226:5226"
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     environment:
       - MONGO_URI=mongodb://mongodb:27017/chem-lab-db
 

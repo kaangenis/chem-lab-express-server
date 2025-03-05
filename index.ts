@@ -74,17 +74,14 @@ console.log("Mongo Config Started");
 const MONGO_URI = "mongodb://mongodb:27017/chem-lab-db";
 
 mongoose
-  .connect(MONGO_URI, {
-    //useNewUrlParser: true,
-    //useUnifiedTopology: true,
-  })
+  .connect(MONGO_URI)
   .then(() => {
     console.log("Mongo Config Done");
     console.log("Connected to MongoDB");
   })
-  .catch((err: string) => {
+  .catch((err: Error) => {
     console.log("Mongo Config Stopped - Error");
-    console.error("CRITICAL_DB_ERROR:", err);
+    console.error("CRITICAL_DB_ERROR:", err.message);
   });
 
 console.log("Mongo Config Completed");
