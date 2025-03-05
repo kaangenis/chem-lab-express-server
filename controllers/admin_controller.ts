@@ -156,9 +156,67 @@ export async function loginToAdmin(req: any, res: any) {
             msg: "User Logged In Successfully.",
             accessToken: accessToken,
             refreshToken: refreshToken,
+            data: admin,
         });
     }
 
+};
+
+export async function getAdminData(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    };
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access" || user.admin !== true) {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        }
+
+        if (!user.uid) {
+            res.status(400).json({
+                status: false,
+                msg: "Admin Not Found."
+            });
+            return;
+        }
+
+        const userindb = await SystemAdminModel.findOne({ UID: user.uid })
+
+        if (!userindb) {
+            res.status(400).json({
+                status: false,
+                msg: "Admin Not Found."
+            });
+            return;
+        };
+
+        if (user.isDeleted === true || user.status === false) {
+            res.status(400).json({
+                status: false,
+                msg: "Admin Deleted or Blocked."
+            });
+            return;
+        };
+
+        res.status(200).json({
+            status: true,
+            msg: "Admin Data Fetched Successfully.",
+            data: userindb,
+        });
+
+    });
 };
 
 export async function createNewAdminFromAnotherAdminSide(req: any, res: any) {

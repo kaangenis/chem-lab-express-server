@@ -4,6 +4,7 @@ import {
     createNewAdminDirectly,
     createNewAdminFromAnotherAdminSide,
     createOrganization,
+    getAdminData,
     getAllLicenses,
     getAllOrganizations,
     loginToAdmin,
@@ -14,6 +15,7 @@ const adminRouter: Router = Router();
 
 adminRouter.post("/admin-directly", createNewAdminDirectly);
 adminRouter.post("/admin-manually", createNewAdminFromAnotherAdminSide);
+adminRouter.get("/get-admin", getAdminData);
 adminRouter.post("/admin-login", loginToAdmin);
 adminRouter.post("/renew-admin", renewAdminToken);
 adminRouter.post("/create-organization", createOrganization);
