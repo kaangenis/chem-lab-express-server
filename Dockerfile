@@ -2,7 +2,7 @@
 FROM node:20
 
 # Çalışma dizinini belirle
-WORKDIR /Users/kaangenis/Desktop/PersonalProjects/chem-lab-express-server
+WORKDIR /app
 
 # Bağımlılıkları kopyala ve yükle
 COPY package*.json ./
