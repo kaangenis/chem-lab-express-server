@@ -282,7 +282,7 @@ export async function createNewAdminFromAnotherAdminSide(req: any, res: any) {
             return;
         }
 
-        if (!user.uid) {
+        if (!user.UID) {
             res.status(400).json({
                 status: false,
                 msg: "Admin Not Found."
@@ -290,7 +290,7 @@ export async function createNewAdminFromAnotherAdminSide(req: any, res: any) {
             return;
         }
 
-        const userindb = await SystemAdminModel.findOne({ UID: user.uid })
+        const userindb = await SystemAdminModel.findOne({ UID: user.UID })
 
         if (!userindb) {
             res.status(400).json({
@@ -367,7 +367,7 @@ export async function renewAdminToken(req: any, res: any) {
 
         const accessToken = await jwt.sign(
             {
-                uid: user.uid,
+                UID: user.UID,
                 email: user.email,
                 tokenType: "access",
                 admin: true,
@@ -380,7 +380,7 @@ export async function renewAdminToken(req: any, res: any) {
         );
         const newRefreshToken = await jwt.sign(
             {
-                uid: user.uid,
+                UID: user.UID,
                 email: user.email,
                 tokenType: "refresh",
                 admin: true,
@@ -424,7 +424,7 @@ export async function getAllLicenses(req: any, res: any) {
             return;
         }
 
-        if (!user.uid) {
+        if (!user.UID) {
             res.status(400).json({
                 status: false,
                 msg: "Admin Not Found."
@@ -432,7 +432,7 @@ export async function getAllLicenses(req: any, res: any) {
             return;
         }
 
-        const userindb = await SystemAdminModel.findOne({ UID: user.uid })
+        const userindb = await SystemAdminModel.findOne({ UID: user.UID })
 
         if (!userindb) {
             res.status(400).json({
@@ -511,7 +511,7 @@ export async function createLicense(req: any, res: any) {
             return;
         }
 
-        if (!user.uid) {
+        if (!user.UID) {
             res.status(400).json({
                 status: false,
                 msg: "Admin Not Found."
@@ -519,7 +519,7 @@ export async function createLicense(req: any, res: any) {
             return;
         }
 
-        const userindb = await SystemAdminModel.findOne({ UID: user.uid })
+        const userindb = await SystemAdminModel.findOne({ UID: user.UID })
 
         if (!userindb) {
             res.status(400).json({
@@ -687,7 +687,7 @@ export async function createOrganization(req: any, res: any) {
             return;
         }
 
-        if (!user.uid) {
+        if (!user.UID) {
             res.status(400).json({
                 status: false,
                 msg: "Admin Not Found."
@@ -695,7 +695,7 @@ export async function createOrganization(req: any, res: any) {
             return;
         }
 
-        const userindb = await SystemAdminModel.findOne({ UID: user.uid })
+        const userindb = await SystemAdminModel.findOne({ UID: user.UID })
 
         if (!userindb) {
             res.status(400).json({
@@ -745,7 +745,7 @@ export async function createOrganization(req: any, res: any) {
                 organizationId: uuidv4(),
                 organizationName: organizationName,
                 organizationHolderFullname: organizationHolderFullName,
-                organizationHolderUID: user.uid,
+                organizationHolderUID: user.UID,
                 organizationUsername: organizationUsername,
                 organizationEmail: organizationEmail,
                 organizationPhone: organizationPhone,
@@ -822,7 +822,7 @@ export async function getAllOrganizations(req: any, res: any) {
             return;
         }
 
-        if (!user.uid) {
+        if (!user.UID) {
             res.status(400).json({
                 status: false,
                 msg: "Admin Not Found."
@@ -830,7 +830,7 @@ export async function getAllOrganizations(req: any, res: any) {
             return;
         }
 
-        const userindb = await SystemAdminModel.findOne({ UID: user.uid })
+        const userindb = await SystemAdminModel.findOne({ UID: user.UID })
 
         if (!userindb) {
             res.status(400).json({
