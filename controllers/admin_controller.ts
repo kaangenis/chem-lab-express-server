@@ -98,6 +98,18 @@ export async function loginToAdmin(req: any, res: any) {
     }
 
     const admin = await SystemAdminModel.findOne({ email: email });
+    const adminWithoutPassword = {
+        UID: admin?.UID,
+        email: admin?.email,
+        fullName: admin?.fullName,
+        createdAt: admin?.createdAt,
+        updatedAt: admin?.updatedAt,
+        status: admin?.status,
+        isBlocked: admin?.isBlocked,
+        isDeleted: admin?.isDeleted,
+        isMailVerified: admin?.isMailVerified,
+        role: admin?.role,
+    };
 
     if (!admin) {
         res.status(400).json({
@@ -156,7 +168,7 @@ export async function loginToAdmin(req: any, res: any) {
             msg: "User Logged In Successfully.",
             accessToken: accessToken,
             refreshToken: refreshToken,
-            data: admin,
+            data: adminWithoutPassword,
         });
     }
 

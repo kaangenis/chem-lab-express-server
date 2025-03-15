@@ -79,11 +79,26 @@ export const loginOrganizationHolder = async (req: any, res: any) => {
             }
         );
 
+        const workerData = await OrganizationHolderModel.findOne({ organizationHolderUID: organizationHolder.organizationHolderUID });
+        const workerDataWithoutPassword = {
+            organizationHolderUID: workerData?.organizationHolderUID,
+            organizationId: workerData?.organizationId,
+            organizationHolderFullname: workerData?.organizationHolderFullname,
+            organizationHolderEmail: workerData?.organizationHolderEmail,
+            organizationHolderPhone: workerData?.organizationHolderPhone,
+            organizationHolderRole: workerData?.organizationHolderRole,
+            organizationHolderStatus: workerData?.organizationHolderStatus,
+            organizationHolderIsDeleted: workerData?.organizationHolderIsDeleted,
+            createdAt: workerData?.createdAt,
+            updatedAt: workerData?.updatedAt,
+        };
+
         res.status(200).json({
             status: true,
             msg: "User Logged In Successfully.",
             accessToken: accessToken,
             refreshToken: refreshToken,
+            data: workerDataWithoutPassword,
         });
         return;
     }
@@ -367,11 +382,28 @@ export const loginOrganizationWorker = async (req: any, res: any) => {
             }
         );
 
+        const workerData = await OrganizationWorkerModel.findOne({ organizationWorkerUID: organizationWorker.organizationWorkerUID });
+        const workerDataWithoutPassword = {
+            organizationWorkerUID: workerData?.organizationWorkerUID,
+            organizationId: workerData?.organizationId,
+            organizationWorkerFullname: workerData?.organizationWorkerFullname,
+            organizationWorkerEmail: workerData?.organizationWorkerEmail,
+            organizationWorkerPhone: workerData?.organizationWorkerPhone,
+            organizationWorkerRole: workerData?.organizationWorkerRole,
+            organizationWorkerStatus: workerData?.organizationWorkerStatus,
+            organizationWorkerIsDeleted: workerData?.organizationWorkerIsDeleted,
+            organizationWorkerWhitelist: workerData?.organizationWorkerWhitelist,
+            organizationWorkerBlacklist: workerData?.organizationWorkerBlacklist,
+            createdAt: workerData?.createdAt,
+            updatedAt: workerData?.updatedAt,
+        }
+
         res.status(200).json({
             status: true,
             msg: "User Logged In Successfully.",
             accessToken: accessToken,
             refreshToken: refreshToken,
+            data: workerDataWithoutPassword,
         });
         return;
     }

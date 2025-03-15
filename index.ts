@@ -8,6 +8,7 @@ import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
 import adminRouter from "./routes/admin_route";
 import organizationRouter from "./routes/organization_route";
+import CRM_offerRouter from "./routes/CRM/CRM_offer_route";
 
 dotenv.config();
 
@@ -109,6 +110,7 @@ app.get("/", (req: any, res: any) => {
 
 app.use("/api/admin", adminRouter);
 app.use("/api/organization", organizationRouter);
+app.use("/api/crm/offer", CRM_offerRouter);
 
 
 server.listen(port, () => {
