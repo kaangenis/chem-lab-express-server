@@ -177,14 +177,17 @@ export const addNewOrganizationWorker = async (req: any, res: any) => {
                     const updatedAt = new Date().getTime();
 
                     const newOrganizationWorker = new OrganizationWorkerModel({
-                        organizationHolderUID: organizationWorkerUID,
-                        organizationHolderFullname: organizationWorkerFullname,
-                        organizationHolderEmail: organizationWorkerEmail,
-                        organizationHolderPhone: organizationWorkerPhone,
-                        organizationHolderPassword: hashedPassword,
-                        organizationHolderRole: organizationWorkerRole,
-                        organizationHolderStatus: true,
-                        organizationHolderIsDeleted: false,
+                        organizationWorkerUID: organizationWorkerUID,
+                        organizationId: organizationHolder.organizationId,
+                        organizationWorkerFullname: organizationWorkerFullname,
+                        organizationWorkerEmail: organizationWorkerEmail,
+                        organizationWorkerPhone: organizationWorkerPhone,
+                        organizationWorkerPassword: hashedPassword,
+                        organizationWorkerRole: organizationWorkerRole,
+                        organizationWorkerStatus: true,
+                        organizationWorkerIsDeleted: false,
+                        organizationWorkerWhitelist: [],
+                        organizationWorkerBlacklist: [],
                         createdAt: createdAt,
                         updatedAt: updatedAt,
                     });
@@ -320,7 +323,7 @@ export const loginOrganizationWorker = async (req: any, res: any) => {
         return;
     };
 
-    if (organizationWorker.organizationHolderIsDeleted === true || organizationWorker.organizationHolderStatus === false) {
+    if (organizationWorker.organizationWorkerIsDeleted === true || organizationWorker.organizationWorkerStatus === false) {
         res.status(400).json({
             status: false,
             msg: "User Deleted or Blocked."
@@ -328,7 +331,7 @@ export const loginOrganizationWorker = async (req: any, res: any) => {
         return;
     };
 
-    const isMatch = await bcrypt.compare(password, organizationWorker.organizationHolderPassword!);
+    const isMatch = await bcrypt.compare(password, organizationWorker.organizationWorkerPassword!);
 
     if (!isMatch) {
         res.status(400).json({
@@ -339,8 +342,8 @@ export const loginOrganizationWorker = async (req: any, res: any) => {
     } else {
         const accessToken = await jwt.sign(
             {
-                UID: organizationWorker.organizationHolderUID,
-                email: organizationWorker.organizationHolderEmail,
+                UID: organizationWorker.organizationWorkerUID,
+                email: organizationWorker.organizationWorkerEmail,
                 tokenType: "access",
                 role: 'WORKER'
             },
@@ -352,8 +355,8 @@ export const loginOrganizationWorker = async (req: any, res: any) => {
         );
         const refreshToken = await jwt.sign(
             {
-                uid: organizationWorker.organizationHolderUID,
-                email: organizationWorker.organizationHolderEmail,
+                uid: organizationWorker.organizationWorkerUID,
+                email: organizationWorker.organizationWorkerEmail,
                 tokenType: "refresh",
                 role: 'WORKER'
             },
