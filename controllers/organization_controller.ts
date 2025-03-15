@@ -303,7 +303,7 @@ export const loginOrganizationWorker = async (req: any, res: any) => {
         return;
     };
 
-    const organizationWorker = await OrganizationWorkerModel.findOne({ organizationHolderEmail: email });
+    const organizationWorker = await OrganizationWorkerModel.findOne({ organizationWorkerEmail: email });
 
     if (!organizationWorker) {
         res.status(400).json({
