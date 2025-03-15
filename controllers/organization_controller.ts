@@ -104,11 +104,12 @@ export const addNewOrganizationWorker = async (req: any, res: any) => {
     const {
         organizationWorkerFullname,
         organizationWorkerEmail,
+        organizationWorkerPassword,
         organizationWorkerPhone,
         organizationWorkerRole,
     } = req.body;
 
-    if (!organizationWorkerFullname || !organizationWorkerEmail || !organizationWorkerPhone || !organizationWorkerRole) {
+    if (!organizationWorkerFullname || !organizationWorkerEmail || !organizationWorkerPassword || !organizationWorkerPhone || !organizationWorkerRole) {
         res.status(400).json({
             status: false,
             msg: "Missing Fields, Please check API Documents."
@@ -170,16 +171,17 @@ export const addNewOrganizationWorker = async (req: any, res: any) => {
                     return;
                 } else {
                     const organizationWorkerUID = uuidv4();
-                    const organizationWorkerPassword = await bcrypt.hash(organizationWorkerPhone, 10);
+                    const salt = await bcrypt.genSalt(10);
+                    const hashedPassword = await bcrypt.hash(organizationWorkerPassword, salt);
                     const createdAt = new Date().getTime();
                     const updatedAt = new Date().getTime();
 
-                    const newOrganizationWorker = new OrganizationHolderModel({
+                    const newOrganizationWorker = new OrganizationWorkerModel({
                         organizationHolderUID: organizationWorkerUID,
                         organizationHolderFullname: organizationWorkerFullname,
                         organizationHolderEmail: organizationWorkerEmail,
                         organizationHolderPhone: organizationWorkerPhone,
-                        organizationHolderPassword: organizationWorkerPassword,
+                        organizationHolderPassword: hashedPassword,
                         organizationHolderRole: organizationWorkerRole,
                         organizationHolderStatus: true,
                         organizationHolderIsDeleted: false,
@@ -298,7 +300,7 @@ export const loginOrganizationWorker = async (req: any, res: any) => {
         return;
     };
 
-    const organizationWorker = await OrganizationHolderModel.findOne({ organizationHolderEmail: email });
+    const organizationWorker = await OrganizationWorkerModel.findOne({ organizationHolderEmail: email });
 
     if (!organizationWorker) {
         res.status(400).json({
