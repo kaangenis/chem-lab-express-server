@@ -715,6 +715,8 @@ export async function createOrganization(req: any, res: any) {
 
         try {
             const OrganizationHolderUID = uuidv4();
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(organizationHolderPassword, salt);
 
             const newOrganizationHolder = new OrganizationHolderModel({
                 organizationHolderUID: OrganizationHolderUID,
@@ -722,7 +724,7 @@ export async function createOrganization(req: any, res: any) {
                 organizationId: '',
                 organizationHolderEmail: organizationHolderEmail,
                 organizationHolderPhone: organizationHolderPhone,
-                organizationHolderPassword: organizationHolderPassword,
+                organizationHolderPassword: hashedPassword,
                 organizationHolderRole: "OWNER",
                 organizationHolderStatus: true,
                 organizationHolderIsDeleted: false,
