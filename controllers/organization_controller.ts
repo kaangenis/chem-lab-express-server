@@ -199,6 +199,7 @@ export const addNewOrganizationWorker = async (req: any, res: any) => {
                         organizationWorkerPhone: organizationWorkerPhone,
                         organizationWorkerPassword: hashedPassword,
                         organizationWorkerRole: organizationWorkerRole,
+                        organizationWorkerImage: "",
                         organizationWorkerStatus: true,
                         organizationWorkerIsDeleted: false,
                         organizationWorkerWhitelist: [],
@@ -407,4 +408,174 @@ export const loginOrganizationWorker = async (req: any, res: any) => {
         });
         return;
     }
+};
+
+export const updateOrganizationHolderPassword = async (req: any, res: any) => {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    };
+
+    const { organizationHolderNewPassword } = req.body;
+
+    if (!organizationHolderNewPassword) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    };
+
+    let splitToken = accessToken.split(' ')[1];
+
+    await jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        } else {
+            if (user.role !== 'HOLDER') {
+                res.status(400).json({
+                    status: false,
+                    msg: "Invalid Role."
+                });
+                return;
+            } else {
+                const organizationHolder = await OrganizationHolderModel.findOne({ organizationHolderEmail: user.email });
+
+                if (!organizationHolder) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Holder Not Found."
+                    });
+                    return;
+                };
+
+                const organizationExists = await OrganizationInfoModel.findOne({ organizationId: organizationHolder?.organizationId });
+
+                if (!organizationExists) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Organization Not Found."
+                    });
+                    return;
+                };
+
+                if (organizationHolder.organizationHolderIsDeleted === true || organizationHolder.organizationHolderStatus === false) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Holder Deleted or Blocked."
+                    });
+                    return;
+                };
+
+                await OrganizationHolderModel.findOneAndUpdate({ organizationHolderEmail: user.email }, {
+                    organizationHolderPassword: organizationHolderNewPassword,
+                    updatedAt: req.currentTime,
+                });
+
+                res.status(200).json({
+                    status: true,
+                    msg: "Holder Password Updated Successfully."
+                });
+                return;
+
+            }
+        }
+    });
+};
+
+
+export const getAllWorkersFromOrganizationSide = async (req: any, res: any) => {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    };
+
+    let splitToken = accessToken.split(' ')[1];
+
+    await jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        } else {
+            if (user.role !== 'HOLDER') {
+                res.status(400).json({
+                    status: false,
+                    msg: "Invalid Role."
+                });
+                return;
+            } else {
+                const organizationHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID });
+
+                if (!organizationHolder) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Holder Not Found."
+                    });
+                    return;
+                };
+
+                const organizationExists = await OrganizationInfoModel.findOne({ organizationId: organizationHolder?.organizationId });
+
+                if (!organizationExists) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Organization Not Found."
+                    });
+                    return;
+                };
+
+                if (organizationHolder.organizationHolderIsDeleted === true || organizationHolder.organizationHolderStatus === false) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Holder Deleted or Blocked."
+                    });
+                    return;
+                };
+
+                const dataToReturn = [];
+                const workers = await OrganizationWorkerModel.find({ organizationId: organizationHolder.organizationId });
+                const workersWithoutPassword = workers.map((worker) => {
+                    dataToReturn.push({
+                        organizationWorkerUID: worker.organizationWorkerUID,
+                        organizationId: worker.organizationId,
+                        organizationWorkerFullname: worker.organizationWorkerFullname,
+                        organizationWorkerEmail: worker.organizationWorkerEmail,
+                        organizationWorkerPhone: worker.organizationWorkerPhone,
+                        organizationWorkerRole: worker.organizationWorkerRole,
+                        organizationWorkerStatus: worker.organizationWorkerStatus,
+                        organizationWorkerIsDeleted: worker.organizationWorkerIsDeleted,
+                        organizationWorkerWhitelist: worker.organizationWorkerWhitelist,
+                        organizationWorkerBlacklist: worker.organizationWorkerBlacklist,
+                        createdAt: worker.createdAt,
+                        updatedAt: worker.updatedAt,
+                    });
+                });
+
+                res.status(200).json({
+                    status: true,
+                    msg: "Workers Fetched Successfully.",
+                    data: workersWithoutPassword,
+                });
+                return;
+            }
+        }
+    });
+
 };

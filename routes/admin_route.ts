@@ -7,6 +7,7 @@ import {
     getAdminData,
     getAllLicenses,
     getAllOrganizations,
+    getAllUsersFromAdminSide,
     loginToAdmin,
     renewAdminToken,
 } from "../controllers/admin_controller";
@@ -22,6 +23,7 @@ adminRouter.post("/create-organization", createOrganization);
 adminRouter.get("/get-organizations", getAllOrganizations);
 adminRouter.post("/create-license", createLicense);
 adminRouter.get("/get-licenses", getAllLicenses);
+adminRouter.get("/get-all-workers", getAllUsersFromAdminSide);
 
 
 export default adminRouter;

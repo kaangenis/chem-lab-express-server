@@ -63,6 +63,7 @@ export async function createNewAdminDirectly(req: any, res: any) {
         email: email,
         password: hashedPassword,
         fullName: fullName,
+        profileImage: "",
         createdAt: req.currentTime,
         updatedAt: req.currentTime,
         status: true,
@@ -329,6 +330,7 @@ export async function createNewAdminFromAnotherAdminSide(req: any, res: any) {
                 email: email,
                 password: hashedPassword,
                 fullName: fullName,
+                profileImage: "",
                 createdAt: req.currentTime,
                 updatedAt: req.currentTime,
                 status: true,
@@ -354,6 +356,80 @@ export async function createNewAdminFromAnotherAdminSide(req: any, res: any) {
     });
 
 
+};
+
+export async function getAllAdmins(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    };
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access" || user.admin !== true) {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        }
+
+        if (!user.UID) {
+            res.status(400).json({
+                status: false,
+                msg: "Admin Not Found."
+            });
+            return;
+        }
+
+        const userindb = await SystemAdminModel.findOne({ UID: user.UID })
+
+        if (!userindb) {
+            res.status(400).json({
+                status: false,
+                msg: "Admin Not Found."
+            });
+            return;
+        };
+
+        if (user.isDeleted === true || user.status === false) {
+            res.status(400).json({
+                status: false,
+                msg: "Admin Deleted or Blocked."
+            });
+            return;
+        };
+
+        let dataToReturn = [];
+        const admins = await SystemAdminModel.find({});
+        const adminsWithoutPassword = admins.map((admin: any) => {
+            dataToReturn.push({
+                UID: admin.UID,
+                email: admin.email,
+                fullName: admin.fullName,
+                createdAt: admin.createdAt,
+                updatedAt: admin.updatedAt,
+                status: admin.status,
+                isBlocked: admin.isBlocked,
+                isDeleted: admin.isDeleted,
+                isMailVerified: admin.isMailVerified,
+                role: admin.role,
+            });
+        });
+
+        res.status(200).json({
+            status: true,
+            msg: "Admins Fetched Successfully.",
+            admins: adminsWithoutPassword,
+        });
+
+    });
 };
 
 export async function renewAdminToken(req: any, res: any) {
@@ -738,6 +814,7 @@ export async function createOrganization(req: any, res: any) {
                 organizationHolderPhone: organizationHolderPhone,
                 organizationHolderPassword: hashedPassword,
                 organizationHolderRole: "OWNER",
+                organizationHolderImage: "",
                 organizationHolderStatus: true,
                 organizationHolderIsDeleted: false,
                 createdAt: req.currentTime,
@@ -862,7 +939,30 @@ export async function getAllOrganizations(req: any, res: any) {
             return;
         };
 
+        const dataToReturn = [];
         const organizations = await OrganizationInfoModel.find({});
+        const organizationsWithoutPassword = organizations.map((organization: any) => {
+            dataToReturn.push({
+                organizationId: organization.organizationId,
+                organizationName: organization.organizationName,
+                organizationHolderFullname: organization.organizationHolderFullname,
+                organizationHolderUID: organization.organizationHolderUID,
+                organizationUsername: organization.organizationUsername,
+                organizationEmail: organization.organizationEmail,
+                organizationPhone: organization.organizationPhone,
+                organizationAddress: organization.organizationAddress,
+                organizationCity: organization.organizationCity,
+                organizationCountry: organization.organizationCountry,
+                organizationLogo: organization.organizationLogo,
+                organizationRole: organization.organizationRole,
+                organizationLicense: organization.organizationLicense,
+                organizationLicenseExpire: organization.organizationLicenseExpire,
+                isActive: organization.isActive,
+                isDeleted: organization.isDeleted,
+                createdAt: organization.createdAt,
+                updatedAt: organization.updatedAt,
+            });
+        });
 
         if (organizations.length === 0 || !organizations) {
             res.status(200).json({
@@ -876,9 +976,94 @@ export async function getAllOrganizations(req: any, res: any) {
         res.status(200).json({
             status: true,
             msg: "Organizations Fetched Successfully.",
-            organizations: organizations,
+            organizations: organizationsWithoutPassword,
         });
         return;
 
     });
 };
+
+export async function getAllUsersFromAdminSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    };
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access" || user.admin !== true) {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        }
+
+        if (!user.UID) {
+            res.status(400).json({
+                status: false,
+                msg: "Admin Not Found."
+            });
+            return;
+        }
+
+        const userindb = await SystemAdminModel.findOne({ UID: user.UID })
+
+        if (!userindb) {
+            res.status(400).json({
+                status: false,
+                msg: "Admin Not Found."
+            });
+            return;
+        };
+
+        if (user.isDeleted === true || user.status === false) {
+            res.status(400).json({
+                status: false,
+                msg: "Admin Deleted or Blocked."
+            });
+            return;
+        };
+
+        const dataToReturn = [];
+        const users = await OrganizationHolderModel.find({});
+        const usersWithoutPassword = users.map((user: any) => {
+            dataToReturn.push({
+                organizationHolderUID: user.organizationHolderUID,
+                organizationHolderFullname: user.organizationHolderFullname,
+                organizationId: user.organizationId,
+                organizationHolderEmail: user.organizationHolderEmail,
+                organizationHolderPhone: user.organizationHolderPhone,
+                organizationHolderRole: user.organizationHolderRole,
+                organizationHolderImage: user.organizationHolderImage,
+                organizationHolderStatus: user.organizationHolderStatus,
+                organizationHolderIsDeleted: user.organizationHolderIsDeleted,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt,
+            });
+        });
+
+        if (users.length === 0 || !users) {
+            res.status(200).json({
+                status: false,
+                msg: "No User Found.",
+                data: [],
+            });
+            return;
+        };
+
+        res.status(200).json({
+            status: true,
+            msg: "Users Fetched Successfully.",
+            users: usersWithoutPassword,
+        });
+        return;
+
+    });
+}

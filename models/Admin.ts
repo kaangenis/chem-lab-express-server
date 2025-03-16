@@ -5,6 +5,7 @@ const SystemAdminSchema = new mongoose.Schema({
     email: String,
     password: String,
     fullName: String,
+    profileImage: String,
     createdAt: Number,
     updatedAt: Number,
     status: Boolean,

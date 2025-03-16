@@ -31,6 +31,7 @@ const OrganizationHolderSchema = new mongoose.Schema({
     organizationHolderRole: String,
     organizationHolderStatus: Boolean,
     organizationHolderIsDeleted: Boolean,
+    organizationHolderImage: String,
     createdAt: Number,
     updatedAt: Number,
 });
@@ -47,6 +48,7 @@ const OrganizationWorkerSchema = new mongoose.Schema({
     organizationWorkerIsDeleted: Boolean,
     organizationWorkerWhitelist: Array,
     organizationWorkerBlacklist: Array,
+    organizationWorkerImage: String,
     createdAt: Number,
     updatedAt: Number,
 });
