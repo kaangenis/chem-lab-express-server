@@ -408,25 +408,25 @@ export async function getAllAdmins(req: any, res: any) {
 
         let dataToReturn = [];
         const admins = await SystemAdminModel.find({});
-        const adminsWithoutPassword = admins.map((admin: any) => {
+        for (let i = 0; i < admins.length; i++) {
             dataToReturn.push({
-                UID: admin.UID,
-                email: admin.email,
-                fullName: admin.fullName,
-                createdAt: admin.createdAt,
-                updatedAt: admin.updatedAt,
-                status: admin.status,
-                isBlocked: admin.isBlocked,
-                isDeleted: admin.isDeleted,
-                isMailVerified: admin.isMailVerified,
-                role: admin.role,
+                UID: admins[i].UID,
+                email: admins[i].email,
+                fullName: admins[i].fullName,
+                createdAt: admins[i].createdAt,
+                updatedAt: admins[i].updatedAt,
+                status: admins[i].status,
+                isBlocked: admins[i].isBlocked,
+                isDeleted: admins[i].isDeleted,
+                isMailVerified: admins[i].isMailVerified,
+                role: admins[i].role,
             });
-        });
+        };
 
         res.status(200).json({
             status: true,
             msg: "Admins Fetched Successfully.",
-            admins: adminsWithoutPassword,
+            admins: dataToReturn,
         });
 
     });
@@ -941,28 +941,28 @@ export async function getAllOrganizations(req: any, res: any) {
 
         const dataToReturn = [];
         const organizations = await OrganizationInfoModel.find({});
-        const organizationsWithoutPassword = organizations.map((organization: any) => {
+        for (let i = 0; i < organizations.length; i++) {
             dataToReturn.push({
-                organizationId: organization.organizationId,
-                organizationName: organization.organizationName,
-                organizationHolderFullname: organization.organizationHolderFullname,
-                organizationHolderUID: organization.organizationHolderUID,
-                organizationUsername: organization.organizationUsername,
-                organizationEmail: organization.organizationEmail,
-                organizationPhone: organization.organizationPhone,
-                organizationAddress: organization.organizationAddress,
-                organizationCity: organization.organizationCity,
-                organizationCountry: organization.organizationCountry,
-                organizationLogo: organization.organizationLogo,
-                organizationRole: organization.organizationRole,
-                organizationLicense: organization.organizationLicense,
-                organizationLicenseExpire: organization.organizationLicenseExpire,
-                isActive: organization.isActive,
-                isDeleted: organization.isDeleted,
-                createdAt: organization.createdAt,
-                updatedAt: organization.updatedAt,
+                organizationId: organizations[i].organizationId,
+                organizationName: organizations[i].organizationName,
+                organizationHolderFullname: organizations[i].organizationHolderFullname,
+                organizationHolderUID: organizations[i].organizationHolderUID,
+                organizationUsername: organizations[i].organizationUsername,
+                organizationEmail: organizations[i].organizationEmail,
+                organizationPhone: organizations[i].organizationPhone,
+                organizationAddress: organizations[i].organizationAddress,
+                organizationCity: organizations[i].organizationCity,
+                organizationCountry: organizations[i].organizationCountry,
+                organizationLogo: organizations[i].organizationLogo,
+                organizationRole: organizations[i].organizationRole,
+                organizationLicense: organizations[i].organizationLicense,
+                organizationLicenseExpire: organizations[i].organizationLicenseExpire,
+                isActive: organizations[i].isActive,
+                isDeleted: organizations[i].isDeleted,
+                createdAt: organizations[i].createdAt,
+                updatedAt: organizations[i].updatedAt,
             });
-        });
+        };
 
         if (organizations.length === 0 || !organizations) {
             res.status(200).json({
@@ -976,7 +976,7 @@ export async function getAllOrganizations(req: any, res: any) {
         res.status(200).json({
             status: true,
             msg: "Organizations Fetched Successfully.",
-            organizations: organizationsWithoutPassword,
+            organizations: dataToReturn,
         });
         return;
 
@@ -1033,21 +1033,21 @@ export async function getAllUsersFromAdminSide(req: any, res: any) {
 
         const dataToReturn = [];
         const users = await OrganizationHolderModel.find({});
-        const usersWithoutPassword = users.map((user: any) => {
+        for (let i = 0; i < users.length; i++) {
             dataToReturn.push({
-                organizationHolderUID: user.organizationHolderUID,
-                organizationHolderFullname: user.organizationHolderFullname,
-                organizationId: user.organizationId,
-                organizationHolderEmail: user.organizationHolderEmail,
-                organizationHolderPhone: user.organizationHolderPhone,
-                organizationHolderRole: user.organizationHolderRole,
-                organizationHolderImage: user.organizationHolderImage,
-                organizationHolderStatus: user.organizationHolderStatus,
-                organizationHolderIsDeleted: user.organizationHolderIsDeleted,
-                createdAt: user.createdAt,
-                updatedAt: user.updatedAt,
+                organizationHolderUID: users[i].organizationHolderUID,
+                organizationHolderFullname: users[i].organizationHolderFullname,
+                organizationId: users[i].organizationId,
+                organizationHolderEmail: users[i].organizationHolderEmail,
+                organizationHolderPhone: users[i].organizationHolderPhone,
+                organizationHolderRole: users[i].organizationHolderRole,
+                organizationHolderImage: users[i].organizationHolderImage,
+                organizationHolderStatus: users[i].organizationHolderStatus,
+                organizationHolderIsDeleted: users[i].organizationHolderIsDeleted,
+                createdAt: users[i].createdAt,
+                updatedAt: users[i].updatedAt,
             });
-        });
+        };
 
         if (users.length === 0 || !users) {
             res.status(200).json({
@@ -1061,9 +1061,9 @@ export async function getAllUsersFromAdminSide(req: any, res: any) {
         res.status(200).json({
             status: true,
             msg: "Users Fetched Successfully.",
-            users: usersWithoutPassword,
+            users: dataToReturn,
         });
         return;
 
     });
-}
+};

@@ -551,27 +551,27 @@ export const getAllWorkersFromOrganizationSide = async (req: any, res: any) => {
 
                 const dataToReturn = [];
                 const workers = await OrganizationWorkerModel.find({ organizationId: organizationHolder.organizationId });
-                const workersWithoutPassword = workers.map((worker) => {
+                for (let i = 0; i < workers.length; i++) {
                     dataToReturn.push({
-                        organizationWorkerUID: worker.organizationWorkerUID,
-                        organizationId: worker.organizationId,
-                        organizationWorkerFullname: worker.organizationWorkerFullname,
-                        organizationWorkerEmail: worker.organizationWorkerEmail,
-                        organizationWorkerPhone: worker.organizationWorkerPhone,
-                        organizationWorkerRole: worker.organizationWorkerRole,
-                        organizationWorkerStatus: worker.organizationWorkerStatus,
-                        organizationWorkerIsDeleted: worker.organizationWorkerIsDeleted,
-                        organizationWorkerWhitelist: worker.organizationWorkerWhitelist,
-                        organizationWorkerBlacklist: worker.organizationWorkerBlacklist,
-                        createdAt: worker.createdAt,
-                        updatedAt: worker.updatedAt,
+                        organizationWorkerUID: workers[i].organizationWorkerUID,
+                        organizationId: workers[i].organizationId,
+                        organizationWorkerFullname: workers[i].organizationWorkerFullname,
+                        organizationWorkerEmail: workers[i].organizationWorkerEmail,
+                        organizationWorkerPhone: workers[i].organizationWorkerPhone,
+                        organizationWorkerRole: workers[i].organizationWorkerRole,
+                        organizationWorkerStatus: workers[i].organizationWorkerStatus,
+                        organizationWorkerIsDeleted: workers[i].organizationWorkerIsDeleted,
+                        organizationWorkerWhitelist: workers[i].organizationWorkerWhitelist,
+                        organizationWorkerBlacklist: workers[i].organizationWorkerBlacklist,
+                        createdAt: workers[i].createdAt,
+                        updatedAt: workers[i].updatedAt,
                     });
-                });
-
+                };
+    
                 res.status(200).json({
                     status: true,
                     msg: "Workers Fetched Successfully.",
-                    data: workersWithoutPassword,
+                    data: dataToReturn,
                 });
                 return;
             }
