@@ -68,9 +68,9 @@ export async function getAllOffersByOrganizationId(req: any, res: any) {
 
 export async function createNewOffer(req: any, res: any) {
     let accessToken = req.headers.authorization;
-    let { offerInformations, offerOtherInformations, offerAdvisorDetails, offerCreatorDetails } = req.body;
+    let { offerInformations, offerOtherInformations, offerAdvisorDetails, offerCreatorNotes } = req.body;
 
-    if (!accessToken || !offerInformations || !offerOtherInformations || !offerAdvisorDetails || !offerCreatorDetails) {
+    if (!accessToken || !offerInformations || !offerOtherInformations || !offerAdvisorDetails || !offerCreatorNotes) {
         res.status(400).json({
             status: false,
             msg: "Missing Fields, Please check API Documents."
@@ -117,6 +117,14 @@ export async function createNewOffer(req: any, res: any) {
             return;
         };
 
+        const offerCreatorDetails = {
+            offerCreatorId: findWorker.organizationWorkerUID,
+            offerCreatorName: findWorker.organizationWorkerFullname,
+            offerCreatorEmail: findWorker.organizationWorkerEmail,
+            offerCreatorPhone: findWorker.organizationWorkerPhone,
+            offerCreatorNotes: offerCreatorNotes
+        };
+
         // Create new offer
         const newOffer = new CRM_OfferModel({
             offerId: uuidv4(),
@@ -127,8 +135,8 @@ export async function createNewOffer(req: any, res: any) {
             offerCreatorDetails: offerCreatorDetails,
             isDeleted: false,
             status: true,
-            createdAt: Date.now(),
-            updatedAt: Date.now()
+            createdAt: req.currentTime,
+            updatedAt: req.currentTime
         });
 
         await newOffer.save();
