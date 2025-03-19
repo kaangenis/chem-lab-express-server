@@ -810,6 +810,7 @@ export async function createOrganization(req: any, res: any) {
                 organizationHolderUID: OrganizationHolderUID,
                 organizationHolderFullname: organizationHolderFullName,
                 organizationId: '',
+                organizationName: organizationName,
                 organizationHolderEmail: organizationHolderEmail,
                 organizationHolderPhone: organizationHolderPhone,
                 organizationHolderPassword: hashedPassword,
