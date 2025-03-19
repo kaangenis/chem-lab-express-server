@@ -20,14 +20,15 @@ const LicenseSchema = new mongoose.Schema({
     licenseName: String,
     licenseType: String,
     licenseExpire: Number,
-    licenseStatus: Boolean,
-    createdAt: Number,
-    updatedAt: Number,
     licenseOrganizationId: String,
+    licenseOrganizationName: String,
     licenseAdminId: String,
     licenseAdminName: String,
     licenseAdminEmail: String,
     licenseAdminPhone: String,
+    licenseStatus: Boolean,
+    createdAt: Number,
+    updatedAt: Number,
 });
 
 const SystemAdminModel = mongoose.model("SystemAdmin", SystemAdminSchema);
