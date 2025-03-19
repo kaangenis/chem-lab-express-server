@@ -3,7 +3,7 @@ import { createNewOffer, getAllOffersByOrganizationId } from "../../controllers/
 
 const CRM_offerRouter: Router = Router();
 
-CRM_offerRouter.post("/get-all-offers", getAllOffersByOrganizationId);
+CRM_offerRouter.get("/get-all-offers", getAllOffersByOrganizationId);
 CRM_offerRouter.post("/create-new-offer", createNewOffer);
 
 export default CRM_offerRouter;
