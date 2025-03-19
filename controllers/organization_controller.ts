@@ -178,6 +178,15 @@ export const addNewOrganizationWorker = async (req: any, res: any) => {
                     return;
                 };
 
+                const emailExists = await OrganizationWorkerModel.findOne({ organizationWorkerEmail: organizationWorkerEmail });
+                if (emailExists) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Email Already Exists."
+                    });
+                    return;
+                }
+
                 if (organizationHolder.organizationHolderRole !== 'OWNER') {
                     res.status(400).json({
                         status: false,
@@ -190,6 +199,8 @@ export const addNewOrganizationWorker = async (req: any, res: any) => {
                     const hashedPassword = await bcrypt.hash(organizationWorkerPassword, salt);
                     const createdAt = new Date().getTime();
                     const updatedAt = new Date().getTime();
+
+                    console.log("Organization Name => ", organizationExists.organizationName);
 
                     const newOrganizationWorker = new OrganizationWorkerModel({
                         organizationWorkerUID: organizationWorkerUID,
