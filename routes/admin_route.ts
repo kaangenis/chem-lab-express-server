@@ -6,6 +6,7 @@ import {
     createOrganization,
     getAdminData,
     getAllAdmins,
+    getAllHoldersFromAdminSide,
     getAllLicenses,
     getAllOrganizations,
     getAllUsersFromAdminSide,
@@ -25,6 +26,7 @@ adminRouter.get("/get-organizations", getAllOrganizations);
 adminRouter.post("/create-license", createLicense);
 adminRouter.get("/get-licenses", getAllLicenses);
 adminRouter.get("/get-all-workers", getAllUsersFromAdminSide);
+adminRouter.get("/get-all-holders", getAllHoldersFromAdminSide);
 adminRouter.get("/get-all-admins", getAllAdmins);
 
 

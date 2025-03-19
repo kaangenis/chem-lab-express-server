@@ -2,7 +2,7 @@ import { LicenseModel, SystemAdminModel } from "../models/Admin";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
-import { OrganizationHolderModel, OrganizationInfoModel } from "../models/Organization";
+import { OrganizationHolderModel, OrganizationInfoModel, OrganizationWorkerModel } from "../models/Organization";
 
 
 export async function createNewAdminDirectly(req: any, res: any) {
@@ -984,6 +984,93 @@ export async function getAllOrganizations(req: any, res: any) {
 };
 
 export async function getAllUsersFromAdminSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    };
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access" || user.admin !== true) {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        }
+
+        if (!user.UID) {
+            res.status(400).json({
+                status: false,
+                msg: "Admin Not Found."
+            });
+            return;
+        }
+
+        const userindb = await SystemAdminModel.findOne({ UID: user.UID })
+
+        if (!userindb) {
+            res.status(400).json({
+                status: false,
+                msg: "Admin Not Found."
+            });
+            return;
+        };
+
+        if (user.isDeleted === true || user.status === false) {
+            res.status(400).json({
+                status: false,
+                msg: "Admin Deleted or Blocked."
+            });
+            return;
+        };
+
+        const dataToReturn = [];
+        const users = await OrganizationWorkerModel.find({});
+        for (let i = 0; i < users.length; i++) {
+            dataToReturn.push({
+                organizationWorkerUID: users[i].organizationWorkerUID,
+                organizationId: users[i].organizationId,
+                organizationWorkerFullname: users[i].organizationWorkerFullname,
+                organizationWorkerEmail: users[i].organizationWorkerEmail,
+                organizationWorkerPhone: users[i].organizationWorkerPhone,
+                organizationWorkerRole: users[i].organizationWorkerRole,
+                organizationWorkerImage: users[i].organizationWorkerImage,
+                organizationWorkerStatus: users[i].organizationWorkerStatus,
+                organizationWorkerIsDeleted: users[i].organizationWorkerIsDeleted,
+                organizationWorkerWhitelist: users[i].organizationWorkerWhitelist,
+                organizationWorkerBlacklist: users[i].organizationWorkerBlacklist,
+                createdAt: users[i].createdAt,
+                updatedAt: users[i].updatedAt,
+            });
+        };
+
+        if (users.length === 0 || !users) {
+            res.status(200).json({
+                status: false,
+                msg: "No User Found.",
+                data: [],
+            });
+            return;
+        };
+
+        res.status(200).json({
+            status: true,
+            msg: "Users Fetched Successfully.",
+            users: dataToReturn,
+        });
+        return;
+
+    });
+};
+
+export async function getAllHoldersFromAdminSide(req: any, res: any) {
     let accessToken = req.headers.authorization;
 
     if (!accessToken) {
