@@ -97,7 +97,7 @@ export async function createNewOffer(req: any, res: any) {
             return;
         }
 
-        const findWorker = await OrganizationWorkerModel.findOne({ workerId: user.UID });
+        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID });
 
         if (!findWorker) {
             res.status(400).json({
