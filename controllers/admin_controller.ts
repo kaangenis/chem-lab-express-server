@@ -1037,6 +1037,7 @@ export async function getAllUsersFromAdminSide(req: any, res: any) {
             dataToReturn.push({
                 organizationWorkerUID: users[i].organizationWorkerUID,
                 organizationId: users[i].organizationId,
+                organizationName: users[i].organizationName,
                 organizationWorkerFullname: users[i].organizationWorkerFullname,
                 organizationWorkerEmail: users[i].organizationWorkerEmail,
                 organizationWorkerPhone: users[i].organizationWorkerPhone,
@@ -1125,6 +1126,7 @@ export async function getAllHoldersFromAdminSide(req: any, res: any) {
                 organizationHolderUID: users[i].organizationHolderUID,
                 organizationHolderFullname: users[i].organizationHolderFullname,
                 organizationId: users[i].organizationId,
+                organizationName: users[i].organizationName,
                 organizationHolderEmail: users[i].organizationHolderEmail,
                 organizationHolderPhone: users[i].organizationHolderPhone,
                 organizationHolderRole: users[i].organizationHolderRole,

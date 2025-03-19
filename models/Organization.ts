@@ -24,6 +24,7 @@ const OrganizationInfoSchema = new mongoose.Schema({
 const OrganizationHolderSchema = new mongoose.Schema({
     organizationHolderUID: String,
     organizationId: String,
+    organizationName: String,
     organizationHolderFullname: String,
     organizationHolderEmail: String,
     organizationHolderPhone: String,
