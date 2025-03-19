@@ -626,19 +626,6 @@ export async function createLicense(req: any, res: any) {
             return;
         }
 
-        console.log("findOrganization => ", findOrganization);
-
-        const findHolderInfo = await OrganizationHolderModel.findOne({ organizationHolderUID: findOrganization?.organizationHolderUID });
-        if (!findHolderInfo) {
-            res.status(400).json({
-                status: false,
-                msg: "Organization Holder Not Found."
-            });
-            return;
-        }
-
-        console.log("findHolderInfo => ", findHolderInfo);
-
         const newLicense = new LicenseModel({
             licenseId: uuidv4(),
             licenseName: licenseName,
@@ -646,10 +633,10 @@ export async function createLicense(req: any, res: any) {
             licenseExpire: licenseExpire,
             licenseOrganizationId: licenseOrganizationId,
             licenseOrganizationName: findOrganization?.organizationName,
-            licenseAdminId: findHolderInfo?.organizationHolderUID,
-            licenseAdminName: findHolderInfo?.organizationHolderFullname,
-            licenseAdminEmail: findHolderInfo?.organizationHolderEmail,
-            licenseAdminPhone: findHolderInfo?.organizationHolderPhone,
+            licenseAdminId: findOrganization.organizationHolderUID,
+            licenseAdminName: findOrganization.organizationHolderFullname,
+            licenseAdminEmail: findOrganization.organizationEmail,
+            licenseAdminPhone: findOrganization.organizationPhone,
             licenseStatus: true,
             createdAt: req.currentTime,
             updatedAt: req.currentTime,
