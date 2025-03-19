@@ -193,6 +193,7 @@ export const addNewOrganizationWorker = async (req: any, res: any) => {
 
                     const newOrganizationWorker = new OrganizationWorkerModel({
                         organizationWorkerUID: organizationWorkerUID,
+                        organizationName: organizationExists.organizationName,
                         organizationId: organizationHolder.organizationId,
                         organizationWorkerFullname: organizationWorkerFullname,
                         organizationWorkerEmail: organizationWorkerEmail,
@@ -567,7 +568,7 @@ export const getAllWorkersFromOrganizationSide = async (req: any, res: any) => {
                         updatedAt: workers[i].updatedAt,
                     });
                 };
-    
+
                 res.status(200).json({
                     status: true,
                     msg: "Workers Fetched Successfully.",

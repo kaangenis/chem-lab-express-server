@@ -39,6 +39,7 @@ const OrganizationHolderSchema = new mongoose.Schema({
 const OrganizationWorkerSchema = new mongoose.Schema({
     organizationWorkerUID: String,
     organizationId: String,
+    organizationName: String,
     organizationWorkerFullname: String,
     organizationWorkerEmail: String,
     organizationWorkerPhone: String,
