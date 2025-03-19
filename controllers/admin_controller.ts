@@ -567,21 +567,13 @@ export async function createLicense(req: any, res: any) {
         licenseType,
         licenseExpire,
         licenseOrganizationId,
-        licenseAdminId,
-        licenseAdminName,
-        licenseAdminEmail,
-        licenseAdminPhone,
     } = req.body;
 
     if (
         !licenseName ||
         !licenseType ||
         !licenseExpire ||
-        !licenseOrganizationId ||
-        !licenseAdminId ||
-        !licenseAdminName ||
-        !licenseAdminEmail ||
-        !licenseAdminPhone
+        !licenseOrganizationId
     ) {
         res.status(400).json({
             status: false,
@@ -625,6 +617,9 @@ export async function createLicense(req: any, res: any) {
             return;
         };
 
+        const findOrganization = await OrganizationInfoModel.findOne({ organizationId: licenseOrganizationId });
+        const findHolderInfo = await OrganizationHolderModel.findOne({ organizationHolderUID: findOrganization?.organizationHolderUID });
+
         const newLicense = new LicenseModel({
             licenseId: uuidv4(),
             licenseName: licenseName,
@@ -634,10 +629,11 @@ export async function createLicense(req: any, res: any) {
             createdAt: req.currentTime,
             updatedAt: req.currentTime,
             licenseOrganizationId: licenseOrganizationId,
-            licenseAdminId: licenseAdminId,
-            licenseAdminName: licenseAdminName,
-            licenseAdminEmail: licenseAdminEmail,
-            licenseAdminPhone: licenseAdminPhone,
+            licenseOrganizationName: findOrganization?.organizationName,
+            licenseAdminId: findHolderInfo?.organizationHolderUID,
+            licenseAdminName: findHolderInfo?.organizationHolderFullname,
+            licenseAdminEmail: findHolderInfo?.organizationHolderEmail,
+            licenseAdminPhone: findHolderInfo?.organizationHolderPhone,
         });
 
         try {
