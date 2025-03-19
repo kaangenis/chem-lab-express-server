@@ -969,7 +969,7 @@ export async function getAllOrganizations(req: any, res: any) {
             res.status(200).json({
                 status: false,
                 msg: "No Organization Found.",
-                data: [],
+                organizations: [],
             });
             return;
         };
@@ -1057,7 +1057,7 @@ export async function getAllUsersFromAdminSide(req: any, res: any) {
             res.status(200).json({
                 status: false,
                 msg: "No User Found.",
-                data: [],
+                users: [],
             });
             return;
         };
@@ -1143,7 +1143,7 @@ export async function getAllHoldersFromAdminSide(req: any, res: any) {
             res.status(200).json({
                 status: false,
                 msg: "No User Found.",
-                data: [],
+                users: [],
             });
             return;
         };
