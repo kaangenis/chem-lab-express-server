@@ -197,8 +197,8 @@ export const addNewOrganizationWorker = async (req: any, res: any) => {
                     const organizationWorkerUID = uuidv4();
                     const salt = await bcrypt.genSalt(10);
                     const hashedPassword = await bcrypt.hash(organizationWorkerPassword, salt);
-                    const createdAt = new Date().getTime();
-                    const updatedAt = new Date().getTime();
+                    const createdAt = req.currentTime;
+                    const updatedAt = req.currentTime;
 
                     console.log("Organization Name => ", organizationExists.organizationName);
 

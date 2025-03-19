@@ -642,7 +642,25 @@ export async function createLicense(req: any, res: any) {
 
         try {
             await newLicense.save();
-            res.status(201).json({ status: true, msg: "License Created Successfully." });
+
+            const findOrganizationAndUpdate = await OrganizationInfoModel.findOne({ organizationId: licenseOrganizationId });
+            if (findOrganizationAndUpdate) {
+                findOrganizationAndUpdate.organizationLicense = newLicense.licenseId;
+                findOrganizationAndUpdate.organizationLicenseExpire = licenseExpire;
+                try {
+                    await findOrganizationAndUpdate.save();
+                    res.status(201).json({ status: true, msg: "License Created Successfully." });
+                    return;
+                } catch (error: any) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Error while creating License.",
+                        error: error.message,
+                    });
+                    return;
+                }
+            }
+
         }
         catch (error: any) {
             res.status(400).json({
