@@ -567,6 +567,7 @@ export const getAllWorkersFromOrganizationSide = async (req: any, res: any) => {
                     dataToReturn.push({
                         organizationWorkerUID: workers[i].organizationWorkerUID,
                         organizationId: workers[i].organizationId,
+                        organizationName: workers[i].organizationName,
                         organizationWorkerFullname: workers[i].organizationWorkerFullname,
                         organizationWorkerEmail: workers[i].organizationWorkerEmail,
                         organizationWorkerPhone: workers[i].organizationWorkerPhone,
