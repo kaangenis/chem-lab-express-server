@@ -8,7 +8,7 @@ organizationRouter.post("/create-worker", addNewOrganizationWorker);
 organizationRouter.post("/login-worker", loginOrganizationWorker);
 organizationRouter.post("/update-worker-pw", updateWorkerPassword);
 organizationRouter.post("/update-holder-pw", updateOrganizationHolderPassword);
-organizationRouter.post("/get-all-workers", getAllWorkersFromOrganizationSide);
+organizationRouter.get("/get-all-workers", getAllWorkersFromOrganizationSide);
 
 
 export default organizationRouter;
