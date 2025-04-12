@@ -45,6 +45,4 @@ const CRM_Offer = new mongoose.Schema({
 
 const CRM_OfferModel = mongoose.model("CRM_Offer", CRM_Offer);
 
-export {
-    CRM_OfferModel,
-};
+export { CRM_OfferModel };
