@@ -267,7 +267,7 @@ export async function getInitialMeasurementsFromWorkerSide(req: any, res: any) {
 
         const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, isDeleted: false }).limit(10);
 
-        if (!measurements) {
+        if (!measurements || measurements.length === 0) {
             res.status(200).json({
                 status: false,
                 msg: "No measurements found.",
@@ -335,7 +335,7 @@ export async function getMoreMeasurementsFromWorkerSide(req: any, res: any) {
 
         const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, measurementId: { $gt: lastId }, isDeleted: false }).limit(10);
 
-        if (!measurements) {
+        if (!measurements || measurements.length === 0) {
             res.status(200).json({
                 status: false,
                 msg: "No measurements found.",
@@ -403,7 +403,7 @@ export async function getInitialMeasurementsFromHolderSide(req: any, res: any) {
 
         const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, isDeleted: false }).limit(10);
 
-        if (!measurements) {
+        if (!measurements || measurements.length === 0) {
             res.status(200).json({
                 status: false,
                 msg: "No measurements found.",
@@ -471,7 +471,7 @@ export async function getMoreMeasurementsFromHolderSide(req: any, res: any) {
 
         const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, measurementId: { $gt: lastId }, isDeleted: false }).limit(10);
 
-        if (!measurements) {
+        if (!measurements || measurements.length === 0) {
             res.status(200).json({
                 status: false,
                 msg: "No measurements found.",
