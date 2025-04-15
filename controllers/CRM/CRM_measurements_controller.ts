@@ -1,12 +1,9 @@
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
-import { OrganizationWorkerModel } from "../../models/Organization";
-import { CRM_ActivitesModel } from "../../models/CRM/CRM_Activities";
+import { OrganizationHolderModel, OrganizationWorkerModel } from "../../models/Organization";
+import { CRM_MeasurementModel } from "../../models/CRM/CRM_Measurement";
 
-
-//fix
-
-export async function getActivitiesFromWorkerSideLimit10(req: any, res: any) {
+export async function createNewMeasurementFromWorkerSide(req: any, res: any) {
     let accessToken = req.headers.authorization;
 
     if (!accessToken) {
@@ -25,18 +22,39 @@ export async function getActivitiesFromWorkerSideLimit10(req: any, res: any) {
                 status: false,
                 msg: "Invalid Token."
             });
-            return;
         }
 
-        if (user.role !== 'WORKER') {
+        const {
+            measurementAuthorizedPersons,
+            measurementInformations,
+            measurementOtherDetails,
+            measurementDeviceDetails,
+            measurementParameters,
+            measurementBarcodes,
+            measurementPlanningId,
+            measurementStartDate,
+            measurementEndDate,
+        } = req.body;
+
+        if (
+            !measurementAuthorizedPersons ||
+            !measurementInformations ||
+            !measurementOtherDetails ||
+            !measurementDeviceDetails ||
+            !measurementParameters ||
+            !measurementBarcodes ||
+            !measurementPlanningId ||
+            !measurementStartDate ||
+            !measurementEndDate
+        ) {
             res.status(400).json({
                 status: false,
-                msg: "Invalid Role."
+                msg: "Missing Fields, Please check API Documents."
             });
             return;
         }
 
-        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID });
+        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID })
 
         if (!findWorker) {
             res.status(400).json({
@@ -44,211 +62,827 @@ export async function getActivitiesFromWorkerSideLimit10(req: any, res: any) {
                 msg: "Worker not found."
             });
             return;
-        };
+        }
 
-        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId });
+        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId })
+
         if (!findOrganization) {
             res.status(400).json({
                 status: false,
                 msg: "Organization not found."
             });
             return;
-        };
-
-        // Fetch all activities by organizationId
-        const allActivities = await CRM_ActivitesModel.find({ activityOrganizationId: findOrganization.organizationId }).limit(10);
-
-        if (!allActivities) {
-            res.status(400).json({
-                status: false,
-                msg: "No activities found."
-            });
-            return;
-        };
-
-        if (allActivities.length === 0) {
-            res.status(200).json({
-                status: false,
-                msg: "No activities found.",
-                data: [],
-                totalCount: 0,
-                lastPage: true,
-                lastId: null
-            });
-            return;
         }
 
-        res.status(200).json({
-            status: true,
-            msg: "All activities fetched successfully.",
-            data: allActivities,
-            totalCount: allActivities.length,
-            lastPage: allActivities.length < 10 ? true : false,
-            lastId: allActivities[allActivities.length - 1].activityId
-        });
+        const measurementId = uuidv4();
 
-    });
-};
-
-export async function getActivitiesContinueByIdFromWorkerSide(req: any, res: any) {
-    let accessToken = req.headers.authorization;
-    let { lastId } = req.params;
-
-    if (!accessToken || !lastId) {
-        res.status(400).json({
-            status: false,
-            msg: "Missing Fields, Please check API Documents."
-        });
-        return;
-    };
-
-    let splitToken = accessToken.split(' ')[1];
-
-    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
-        if (error || user.tokenType !== "access") {
-            res.status(401).json({
-                status: false,
-                msg: "Invalid Token."
-            });
-            return;
-        }
-
-        if (user.role !== 'WORKER') {
-            res.status(400).json({
-                status: false,
-                msg: "Invalid Role."
-            });
-            return;
-        }
-
-        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID });
-
-        if (!findWorker) {
-            res.status(400).json({
-                status: false,
-                msg: "Worker not found."
-            });
-            return;
-        };
-
-        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId });
-        if (!findOrganization) {
-            res.status(400).json({
-                status: false,
-                msg: "Organization not found."
-            });
-            return;
-        };
-
-        // Fetch all activities by organizationId
-        const allActivities = await CRM_ActivitesModel.find({ activityOrganizationId: findOrganization.organizationId, activityId: { $lt: lastId } }).limit(10);
-
-        if (!allActivities) {
-            res.status(400).json({
-                status: false,
-                msg: "No activities found."
-            });
-            return;
-        };
-
-        if (allActivities.length === 0) {
-            res.status(200).json({
-                status: false,
-                msg: "No activities found.",
-                data: [],
-                totalCount: 0,
-                lastPage: true,
-                lastId: null
-            });
-            return;
-        }
-
-        res.status(200).json({
-            status: true,
-            msg: "All activities fetched successfully.",
-            data: allActivities,
-            totalCount: allActivities.length,
-            lastPage: allActivities.length < 10 ? true : false,
-            lastId: allActivities[allActivities.length - 1].activityId
-        });
-
-    });
-};
-
-export async function createNewActivityFromWorkerSide(req: any, res: any) {
-    let accessToken = req.headers.authorization;
-
-    if (!accessToken) {
-        res.status(400).json({
-            status: false,
-            msg: "Missing Fields, Please check API Documents."
-        });
-        return;
-    };
-
-    let splitToken = accessToken.split(' ')[1];
-
-    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
-        if (error || user.tokenType !== "access") {
-            res.status(401).json({
-                status: false,
-                msg: "Invalid Token."
-            });
-            return;
-        }
-
-        if (user.role !== 'WORKER') {
-            res.status(400).json({
-                status: false,
-                msg: "Invalid Role."
-            });
-            return;
-        }
-
-        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID });
-
-        if (!findWorker) {
-            res.status(400).json({
-                status: false,
-                msg: "Worker not found."
-            });
-            return;
-        };
-
-        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId });
-        if (!findOrganization) {
-            res.status(400).json({
-                status: false,
-                msg: "Organization not found."
-            });
-            return;
-        };
-
-        const { activityCustomerId, activityCustomerName, activityContacts, activityType, activityStatus, activityDate, activityOtherDetails } = req.body;
-
-        const newActivity = new CRM_ActivitesModel({
-            activityId: uuidv4(),
-            activityOrganizationId: findOrganization.organizationId,
-            activityCustomerId: activityCustomerId,
-            activityCustomerName: activityCustomerName,
-            activityContacts: activityContacts,
-            activityType: activityType,
-            activityStatus: activityStatus,
-            activityDate: activityDate,
-            activityOtherDetails: activityOtherDetails,
+        const createNewMeasurement = await CRM_MeasurementModel.create({
+            measurementId: measurementId,
+            measurementOrganizationId: findOrganization.organizationId,
+            measurementPlanningId: measurementPlanningId,
+            measurementStartDate: measurementStartDate,
+            measurementEndDate: measurementEndDate,
+            measurementAuthorizedPersons: measurementAuthorizedPersons,
+            measurementInformations: measurementInformations,
+            measurementOtherDetails: measurementOtherDetails,
+            measurementDeviceDetails: measurementDeviceDetails,
+            measurementParameters: measurementParameters,
+            measurementBarcodes: measurementBarcodes,
             isDeleted: false,
             status: true,
             createdAt: req.currentTime,
             updatedAt: req.currentTime,
-        });
+        })
 
-        await newActivity.save();
+        try {
+            await createNewMeasurement.save();
+            res.status(200).json({
+                status: true,
+                msg: "Measurement created successfully.",
+                data: createNewMeasurement
+            });
+            return;
+        } catch (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Error creating measurement."
+            });
+            return;
+        }
+    });
+
+};
+
+export async function createNewMeasurementFromHolderSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        }
+
+        const {
+            measurementAuthorizedPersons,
+            measurementInformations,
+            measurementOtherDetails,
+            measurementDeviceDetails,
+            measurementParameters,
+            measurementBarcodes,
+            measurementPlanningId,
+            measurementStartDate,
+            measurementEndDate,
+        } = req.body;
+
+        if (
+            !measurementAuthorizedPersons ||
+            !measurementInformations ||
+            !measurementOtherDetails ||
+            !measurementDeviceDetails ||
+            !measurementParameters ||
+            !measurementBarcodes ||
+            !measurementPlanningId ||
+            !measurementStartDate ||
+            !measurementEndDate
+        ) {
+            res.status(400).json({
+                status: false,
+                msg: "Missing Fields, Please check API Documents."
+            });
+            return;
+        }
+
+        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID })
+
+        if (!findHolder) {
+            res.status(400).json({
+                status: false,
+                msg: "Holder not found."
+            });
+            return;
+        };
+
+        const findOrganization = await OrganizationHolderModel.findOne({ organizationId: findHolder.organizationId })
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        };
+
+        const measurementId = uuidv4();
+
+        const createNewMeasurement = await CRM_MeasurementModel.create({
+            measurementId: measurementId,
+            measurementOrganizationId: findOrganization.organizationId,
+            measurementPlanningId: measurementPlanningId,
+            measurementStartDate: measurementStartDate,
+            measurementEndDate: measurementEndDate,
+            measurementAuthorizedPersons: measurementAuthorizedPersons,
+            measurementInformations: measurementInformations,
+            measurementOtherDetails: measurementOtherDetails,
+            measurementDeviceDetails: measurementDeviceDetails,
+            measurementParameters: measurementParameters,
+            measurementBarcodes: measurementBarcodes,
+            isDeleted: false,
+            status: true,
+            createdAt: req.currentTime,
+            updatedAt: req.currentTime,
+        })
+
+        try {
+            await createNewMeasurement.save();
+            res.status(200).json({
+                status: true,
+                msg: "Measurement created successfully.",
+                data: createNewMeasurement
+            });
+            return;
+        } catch (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Error creating measurement."
+            });
+            return;
+        }
+    });
+};
+
+export async function getInitialMeasurementsFromWorkerSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        }
+
+        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID })
+
+        if (!findWorker) {
+            res.status(400).json({
+                status: false,
+                msg: "Worker not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId })
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+        const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, isDeleted: false }).limit(10);
+
+        if (!measurements) {
+            res.status(200).json({
+                status: false,
+                msg: "No measurements found.",
+                data: [],
+                lastPage: true,
+                lastId: ""
+            });
+            return;
+        }
 
         res.status(200).json({
             status: true,
-            msg: "New Activity Created Successfully.",
-            data: newActivity
+            msg: "Measurements fetched successfully.",
+            data: measurements,
+            lastPage: measurements.length < 10 ? true : false,
+            lastId: measurements[measurements.length - 1].measurementId
         });
-
+        return;
     });
+};
+
+export async function getMoreMeasurementsFromWorkerSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        }
+
+        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID })
+
+        if (!findWorker) {
+            res.status(400).json({
+                status: false,
+                msg: "Worker not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId })
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+        const { lastId } = req.query;
+
+        const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, measurementId: { $gt: lastId }, isDeleted: false }).limit(10);
+
+        if (!measurements) {
+            res.status(200).json({
+                status: false,
+                msg: "No measurements found.",
+                data: [],
+                lastPage: true,
+                lastId: ""
+            });
+            return;
+        }
+
+        res.status(200).json({
+            status: true,
+            msg: "Measurements fetched successfully.",
+            data: measurements,
+            lastPage: measurements.length < 10 ? true : false,
+            lastId: measurements[measurements.length - 1].measurementId
+        });
+        return;
+    });
+};
+
+export async function getInitialMeasurementsFromHolderSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        }
+
+        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID })
+
+        if (!findHolder) {
+            res.status(400).json({
+                status: false,
+                msg: "Holder not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationHolderModel.findOne({ organizationId: findHolder.organizationId })
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+        const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, isDeleted: false }).limit(10);
+
+        if (!measurements) {
+            res.status(200).json({
+                status: false,
+                msg: "No measurements found.",
+                data: [],
+                lastPage: true,
+                lastId: ""
+            });
+            return;
+        }
+
+        res.status(200).json({
+            status: true,
+            msg: "Measurements fetched successfully.",
+            data: measurements,
+            lastPage: measurements.length < 10 ? true : false,
+            lastId: measurements[measurements.length - 1].measurementId
+        });
+        return;
+    });
+};
+
+export async function getMoreMeasurementsFromHolderSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        }
+
+        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID })
+
+        if (!findHolder) {
+            res.status(400).json({
+                status: false,
+                msg: "Holder not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationHolderModel.findOne({ organizationId: findHolder.organizationId })
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+        const { lastId } = req.query;
+
+        const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, measurementId: { $gt: lastId }, isDeleted: false }).limit(10);
+
+        if (!measurements) {
+            res.status(200).json({
+                status: false,
+                msg: "No measurements found.",
+                data: [],
+                lastPage: true,
+                lastId: ""
+            });
+            return;
+        }
+
+        res.status(200).json({
+            status: true,
+            msg: "Measurements fetched successfully.",
+            data: measurements,
+            lastPage: measurements.length < 10 ? true : false,
+            lastId: measurements[measurements.length - 1].measurementId
+        });
+        return;
+    });
+};
+
+export async function updateMeasurementFromWorkerSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        }
+
+        const {
+            measurementId,
+            measurementAuthorizedPersons,
+            measurementInformations,
+            measurementOtherDetails,
+            measurementDeviceDetails,
+            measurementParameters,
+            measurementBarcodes,
+            measurementPlanningId,
+            measurementStartDate,
+            measurementEndDate,
+        } = req.body;
+
+        if (
+            !measurementId ||
+            !measurementAuthorizedPersons ||
+            !measurementInformations ||
+            !measurementOtherDetails ||
+            !measurementDeviceDetails ||
+            !measurementParameters ||
+            !measurementBarcodes ||
+            !measurementPlanningId ||
+            !measurementStartDate ||
+            !measurementEndDate
+        ) {
+            res.status(400).json({
+                status: false,
+                msg: "Missing Fields, Please check API Documents."
+            });
+            return;
+        }
+
+        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID })
+
+        if (!findWorker) {
+            res.status(400).json({
+                status: false,
+                msg: "Worker not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId })
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+        const findMeasurement = await CRM_MeasurementModel.findOne({ measurementId: measurementId, measurementOrganizationId: findOrganization.organizationId })
+
+        if (!findMeasurement) {
+            res.status(400).json({
+                status: false,
+                msg: "Measurement not found."
+            });
+            return;
+        }
+
+        findMeasurement.measurementAuthorizedPersons = measurementAuthorizedPersons;
+        findMeasurement.measurementInformations = measurementInformations;
+        findMeasurement.measurementOtherDetails = measurementOtherDetails;
+        findMeasurement.measurementDeviceDetails = measurementDeviceDetails;
+        findMeasurement.measurementParameters = measurementParameters;
+        findMeasurement.measurementBarcodes = measurementBarcodes;
+        findMeasurement.measurementPlanningId = measurementPlanningId;
+        findMeasurement.measurementStartDate = measurementStartDate;
+        findMeasurement.measurementEndDate = measurementEndDate;
+        findMeasurement.updatedAt = req.currentTime;
+
+        try {
+            await findMeasurement.save();
+            res.status(200).json({
+                status: true,
+                msg: "Measurement updated successfully.",
+                data: findMeasurement
+            });
+            return;
+        } catch (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Error updating measurement."
+            });
+            return;
+        }
+
+    })
+};
+
+export async function updateMeasurementFromHolderSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        }
+
+        const {
+            measurementId,
+            measurementAuthorizedPersons,
+            measurementInformations,
+            measurementOtherDetails,
+            measurementDeviceDetails,
+            measurementParameters,
+            measurementBarcodes,
+            measurementPlanningId,
+            measurementStartDate,
+            measurementEndDate,
+        } = req.body;
+
+        if (
+            !measurementId ||
+            !measurementAuthorizedPersons ||
+            !measurementInformations ||
+            !measurementOtherDetails ||
+            !measurementDeviceDetails ||
+            !measurementParameters ||
+            !measurementBarcodes ||
+            !measurementPlanningId ||
+            !measurementStartDate ||
+            !measurementEndDate
+        ) {
+            res.status(400).json({
+                status: false,
+                msg: "Missing Fields, Please check API Documents."
+            });
+            return;
+        }
+
+        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID })
+
+        if (!findHolder) {
+            res.status(400).json({
+                status: false,
+                msg: "Holder not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationHolderModel.findOne({ organizationId: findHolder.organizationId })
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+        const findMeasurement = await CRM_MeasurementModel.findOne({ measurementId: measurementId, measurementOrganizationId: findOrganization.organizationId })
+
+        if (!findMeasurement) {
+            res.status(400).json({
+                status: false,
+                msg: "Measurement not found."
+            });
+            return;
+        }
+
+        findMeasurement.measurementAuthorizedPersons = measurementAuthorizedPersons;
+        findMeasurement.measurementInformations = measurementInformations;
+        findMeasurement.measurementOtherDetails = measurementOtherDetails;
+        findMeasurement.measurementDeviceDetails = measurementDeviceDetails;
+        findMeasurement.measurementParameters = measurementParameters;
+        findMeasurement.measurementBarcodes = measurementBarcodes;
+        findMeasurement.measurementPlanningId = measurementPlanningId;
+        findMeasurement.measurementStartDate = measurementStartDate;
+        findMeasurement.measurementEndDate = measurementEndDate;
+        findMeasurement.updatedAt = req.currentTime;
+
+        try {
+            await findMeasurement.save();
+            res.status(200).json({
+                status: true,
+                msg: "Measurement updated successfully.",
+                data: findMeasurement
+            });
+            return;
+        } catch (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Error updating measurement."
+            });
+            return;
+        }
+
+    })
+};
+
+export async function deleteMeasurementFromWorkerSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        }
+
+        const { measurementId } = req.body;
+
+        if (!measurementId) {
+            res.status(400).json({
+                status: false,
+                msg: "Missing Fields, Please check API Documents."
+            });
+            return;
+        }
+
+        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID })
+
+        if (!findWorker) {
+            res.status(400).json({
+                status: false,
+                msg: "Worker not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId })
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+        const findMeasurement = await CRM_MeasurementModel.findOne({ measurementId: measurementId, measurementOrganizationId: findOrganization.organizationId })
+
+        if (!findMeasurement) {
+            res.status(400).json({
+                status: false,
+                msg: "Measurement not found."
+            });
+            return;
+        }
+
+        findMeasurement.isDeleted = true;
+        findMeasurement.updatedAt = req.currentTime;
+
+        try {
+            await findMeasurement.save();
+            res.status(200).json({
+                status: true,
+                msg: "Measurement deleted successfully.",
+                data: findMeasurement
+            });
+            return;
+        } catch (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Error deleting measurement."
+            });
+            return;
+        }
+    })
+};
+
+export async function deleteMeasurementFromHolderSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        }
+
+        const { measurementId } = req.body;
+
+        if (!measurementId) {
+            res.status(400).json({
+                status: false,
+                msg: "Missing Fields, Please check API Documents."
+            });
+            return;
+        }
+
+        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID })
+
+        if (!findHolder) {
+            res.status(400).json({
+                status: false,
+                msg: "Holder not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationHolderModel.findOne({ organizationId: findHolder.organizationId })
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+        const findMeasurement = await CRM_MeasurementModel.findOne({ measurementId: measurementId, measurementOrganizationId: findOrganization.organizationId })
+
+        if (!findMeasurement) {
+            res.status(400).json({
+                status: false,
+                msg: "Measurement not found."
+            });
+            return;
+        }
+
+        findMeasurement.isDeleted = true;
+        findMeasurement.updatedAt = req.currentTime;
+
+        try {
+            await findMeasurement.save();
+            res.status(200).json({
+                status: true,
+                msg: "Measurement deleted successfully.",
+                data: findMeasurement
+            });
+            return;
+        } catch (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Error deleting measurement."
+            });
+            return;
+        }
+    })
 };

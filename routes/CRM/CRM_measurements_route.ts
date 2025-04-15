@@ -1,12 +1,28 @@
 import { Router } from "express";
-import { createNewActivityFromWorkerSide, getActivitiesContinueByIdFromWorkerSide, getActivitiesFromWorkerSideLimit10 } from "../../controllers/CRM/CRM_activities_controller";
+import {
+    createNewMeasurementFromHolderSide,
+    createNewMeasurementFromWorkerSide,
+    getInitialMeasurementsFromHolderSide,
+    getInitialMeasurementsFromWorkerSide,
+    getMoreMeasurementsFromHolderSide,
+    getMoreMeasurementsFromWorkerSide,
+    updateMeasurementFromWorkerSide,
+    updateMeasurementFromHolderSide,
+    deleteMeasurementFromWorkerSide,
+    deleteMeasurementFromHolderSide,
+} from "../../controllers/CRM/CRM_measurements_controller";
 
-//fix
+const CRM_measurementsRoute: Router = Router();
 
-const CRM_activitiesRoute: Router = Router();
+CRM_measurementsRoute.post("/worker/create-new-measurement", createNewMeasurementFromWorkerSide);
+CRM_measurementsRoute.post("/holder/create-new-measurement", createNewMeasurementFromHolderSide);
+CRM_measurementsRoute.get("/worker/get-initial-measurements", getInitialMeasurementsFromWorkerSide);
+CRM_measurementsRoute.get("/worker/get-more-measurements", getMoreMeasurementsFromWorkerSide);
+CRM_measurementsRoute.get("/holder/get-initial-measurements", getInitialMeasurementsFromHolderSide);
+CRM_measurementsRoute.get("/holder/get-more-measurements", getMoreMeasurementsFromHolderSide);
+CRM_measurementsRoute.put("/worker/update-measurement", updateMeasurementFromWorkerSide);
+CRM_measurementsRoute.put("/holder/update-measurement", updateMeasurementFromHolderSide);
+CRM_measurementsRoute.delete("/worker/delete-measurement", deleteMeasurementFromWorkerSide);
+CRM_measurementsRoute.delete("/holder/delete-measurement", deleteMeasurementFromHolderSide);
 
-CRM_activitiesRoute.get("/worker/get-initial-activities", getActivitiesFromWorkerSideLimit10);
-CRM_activitiesRoute.get("/worker/get-more-activities", getActivitiesContinueByIdFromWorkerSide);
-CRM_activitiesRoute.post("/worker/create-new-activity", createNewActivityFromWorkerSide);
-
-export default CRM_activitiesRoute;
+export default CRM_measurementsRoute;
