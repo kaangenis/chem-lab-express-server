@@ -273,7 +273,8 @@ export async function getInitialMeasurementsFromWorkerSide(req: any, res: any) {
                 msg: "No measurements found.",
                 data: [],
                 lastPage: true,
-                lastId: ""
+                lastId: "",
+                itemCount: 0
             });
             return;
         }
@@ -283,7 +284,8 @@ export async function getInitialMeasurementsFromWorkerSide(req: any, res: any) {
             msg: "Measurements fetched successfully.",
             data: measurements,
             lastPage: measurements.length < 10 ? true : false,
-            lastId: measurements[measurements.length - 1]._id
+            lastId: measurements[measurements.length - 1]._id,
+            itemCount: measurements.length
         });
         return;
     });
@@ -350,6 +352,7 @@ export async function getMoreMeasurementsFromWorkerSide(req: any, res: any) {
                     msg: "No measurements found.",
                     data: [],
                     lastPage: true,
+                    itemCount: 0,
                     lastId: ""
                 });
                 return;
@@ -360,7 +363,8 @@ export async function getMoreMeasurementsFromWorkerSide(req: any, res: any) {
                 msg: "Measurements fetched successfully.",
                 data: measurements,
                 lastPage: measurements.length < 10 ? true : false,
-                lastId: measurements[measurements.length - 1]._id
+                lastId: measurements[measurements.length - 1]._id,
+                itemCount: measurements.length
             });
             return;
         } catch (error) {
@@ -417,7 +421,7 @@ export async function getInitialMeasurementsFromHolderSide(req: any, res: any) {
             return;
         }
 
-        const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, isDeleted: false }).limit(10);
+        const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId }).limit(10);
 
         if (!measurements || measurements.length === 0) {
             res.status(200).json({
@@ -425,7 +429,8 @@ export async function getInitialMeasurementsFromHolderSide(req: any, res: any) {
                 msg: "No measurements found.",
                 data: [],
                 lastPage: true,
-                lastId: ""
+                lastId: "",
+                itemCount: 0
             });
             return;
         }
@@ -435,7 +440,8 @@ export async function getInitialMeasurementsFromHolderSide(req: any, res: any) {
             msg: "Measurements fetched successfully.",
             data: measurements,
             lastPage: measurements.length < 10 ? true : false,
-            lastId: measurements[measurements.length - 1]._id
+            lastId: measurements[measurements.length - 1]._id,
+            itemCount: measurements.length
         });
         return;
     });
@@ -494,14 +500,15 @@ export async function getMoreMeasurementsFromHolderSide(req: any, res: any) {
         }
 
         try {
-            const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, _id: { $gt: lastId }, isDeleted: false }).limit(10);
+            const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, _id: { $gt: lastId } }).limit(10);
             if (!measurements || measurements.length === 0) {
                 res.status(200).json({
                     status: false,
                     msg: "No measurements found.",
                     data: [],
                     lastPage: true,
-                    lastId: ""
+                    lastId: "",
+                    itemCount: 0
                 });
                 return;
             }
@@ -511,7 +518,8 @@ export async function getMoreMeasurementsFromHolderSide(req: any, res: any) {
                 msg: "Measurements fetched successfully.",
                 data: measurements,
                 lastPage: measurements.length < 10 ? true : false,
-                lastId: measurements[measurements.length - 1]._id
+                lastId: measurements[measurements.length - 1]._id,
+                itemCount: measurements.length
             });
             return;
         } catch (error) {
@@ -671,6 +679,7 @@ export async function updateMeasurementFromHolderSide(req: any, res: any) {
             measurementPlanningId,
             measurementStartDate,
             measurementEndDate,
+            isDeleted,
         } = req.body;
 
         if (
@@ -683,7 +692,8 @@ export async function updateMeasurementFromHolderSide(req: any, res: any) {
             !measurementBarcodes ||
             !measurementPlanningId ||
             !measurementStartDate ||
-            !measurementEndDate
+            !measurementEndDate ||
+            isDeleted === undefined
         ) {
             res.status(400).json({
                 status: false,
@@ -731,6 +741,7 @@ export async function updateMeasurementFromHolderSide(req: any, res: any) {
         findMeasurement.measurementPlanningId = measurementPlanningId;
         findMeasurement.measurementStartDate = measurementStartDate;
         findMeasurement.measurementEndDate = measurementEndDate;
+        findMeasurement.isDeleted = isDeleted;
         findMeasurement.updatedAt = req.currentTime;
 
         try {
@@ -916,4 +927,163 @@ export async function deleteMeasurementFromHolderSide(req: any, res: any) {
             return;
         }
     })
+};
+
+export async function searchMeasurementWithMeasurementScopeFromWorkerSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents.",
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        }
+
+        const { measurementScope } = req.query;
+
+        if (!measurementScope) {
+            res.status(400).json({
+                status: false,
+                msg: "Missing Fields, Please check API Documents."
+            });
+            return;
+        }
+
+        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID })
+
+        if (!findWorker) {
+            res.status(400).json({
+                status: false,
+                msg: "Worker not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId })
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+        try {
+            const findMeasurement = await CRM_MeasurementModel.findOne({ measurementInformations: { $regex: measurementScope, $options: "i" }, measurementOrganizationId: findOrganization.organizationId, isDeleted: false })
+
+            if (!findMeasurement) {
+                res.status(400).json({
+                    status: false,
+                    msg: "Measurement not found."
+                });
+                return;
+            }
+
+            res.status(200).json({
+                status: true,
+                msg: "Measurement found.",
+                data: findMeasurement
+            });
+            return;
+        } catch (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Error searching measurement."
+            });
+            return;
+        }
+    });
+};
+
+export async function searchMeasurementWithMeasurementScopeFromHolderSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents.",
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        }
+
+        const { measurementScope } = req.query;
+
+        if (!measurementScope) {
+            res.status(400).json({
+                status: false,
+                msg: "Missing Fields, Please check API Documents."
+            });
+            return;
+        }
+
+        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID })
+
+        if (!findHolder) {
+            res.status(400).json({
+                status: false,
+                msg: "Holder not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationHolderModel.findOne({ organizationId: findHolder.organizationId })
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+        try {
+
+            const findMeasurement = await CRM_MeasurementModel.findOne({ measurementInformations: { $regex: measurementScope, $options: "i" }, measurementOrganizationId: findOrganization.organizationId, isDeleted: false })
+
+            if (!findMeasurement) {
+                res.status(400).json({
+                    status: false,
+                    msg: "Measurement not found."
+                });
+                return;
+            }
+
+            res.status(200).json({
+                status: true,
+                msg: "Measurement found.",
+                data: findMeasurement
+            });
+            return;
+        } catch (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Error searching measurement."
+            });
+            return;
+        }
+    });
 };
