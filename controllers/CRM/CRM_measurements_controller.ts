@@ -825,7 +825,16 @@ export async function deleteMeasurementFromWorkerSide(req: any, res: any) {
             return;
         }
 
+        if (findMeasurement.isDeleted === true || findMeasurement.status === false) {
+            res.status(400).json({
+                status: false,
+                msg: "Measurement is already deleted."
+            });
+            return;
+        }
+
         findMeasurement.isDeleted = true;
+        findMeasurement.status = false;
         findMeasurement.updatedAt = req.currentTime;
 
         try {
@@ -833,7 +842,6 @@ export async function deleteMeasurementFromWorkerSide(req: any, res: any) {
             res.status(200).json({
                 status: true,
                 msg: "Measurement deleted successfully.",
-                data: findMeasurement
             });
             return;
         } catch (error) {
@@ -908,7 +916,16 @@ export async function deleteMeasurementFromHolderSide(req: any, res: any) {
             return;
         }
 
+        if (findMeasurement.isDeleted === true || findMeasurement.status === false) {
+            res.status(400).json({
+                status: false,
+                msg: "Measurement is already deleted."
+            });
+            return;
+        }
+
         findMeasurement.isDeleted = true;
+        findMeasurement.status = false;
         findMeasurement.updatedAt = req.currentTime;
 
         try {
