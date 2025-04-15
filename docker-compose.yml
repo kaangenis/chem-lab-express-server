@@ -13,6 +13,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: always
 
   express:
     build:
@@ -25,6 +26,7 @@ services:
         condition: service_healthy
     environment:
       - MONGO_URI=mongodb://mongodb:27017/chem-lab-db
+    restart: always
 
 volumes:
   mongo-data:
