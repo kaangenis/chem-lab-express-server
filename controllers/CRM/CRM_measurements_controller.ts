@@ -283,7 +283,7 @@ export async function getInitialMeasurementsFromWorkerSide(req: any, res: any) {
             msg: "Measurements fetched successfully.",
             data: measurements,
             lastPage: measurements.length < 10 ? true : false,
-            lastId: measurements[measurements.length - 1].measurementId
+            lastId: measurements[measurements.length - 1]._id
         });
         return;
     });
@@ -333,6 +333,14 @@ export async function getMoreMeasurementsFromWorkerSide(req: any, res: any) {
 
         const { lastId } = req.query;
 
+        if (!lastId) {
+            res.status(400).json({
+                status: false,
+                msg: "Missing Fields, Please check API Documents."
+            });
+            return;
+        }
+
         const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, measurementId: { $gt: lastId }, isDeleted: false }).limit(10);
 
         if (!measurements || measurements.length === 0) {
@@ -351,7 +359,7 @@ export async function getMoreMeasurementsFromWorkerSide(req: any, res: any) {
             msg: "Measurements fetched successfully.",
             data: measurements,
             lastPage: measurements.length < 10 ? true : false,
-            lastId: measurements[measurements.length - 1].measurementId
+            lastId: measurements[measurements.length - 1]._id
         });
         return;
     });
@@ -419,7 +427,7 @@ export async function getInitialMeasurementsFromHolderSide(req: any, res: any) {
             msg: "Measurements fetched successfully.",
             data: measurements,
             lastPage: measurements.length < 10 ? true : false,
-            lastId: measurements[measurements.length - 1].measurementId
+            lastId: measurements[measurements.length - 1]._id
         });
         return;
     });
@@ -469,6 +477,14 @@ export async function getMoreMeasurementsFromHolderSide(req: any, res: any) {
 
         const { lastId } = req.query;
 
+        if (!lastId) {
+            res.status(400).json({
+                status: false,
+                msg: "Missing Fields, Please check API Documents."
+            });
+            return;
+        }
+
         const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, measurementId: { $gt: lastId }, isDeleted: false }).limit(10);
 
         if (!measurements || measurements.length === 0) {
@@ -487,7 +503,7 @@ export async function getMoreMeasurementsFromHolderSide(req: any, res: any) {
             msg: "Measurements fetched successfully.",
             data: measurements,
             lastPage: measurements.length < 10 ? true : false,
-            lastId: measurements[measurements.length - 1].measurementId
+            lastId: measurements[measurements.length - 1]._id
         });
         return;
     });
