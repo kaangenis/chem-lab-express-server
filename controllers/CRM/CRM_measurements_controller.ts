@@ -341,7 +341,7 @@ export async function getMoreMeasurementsFromWorkerSide(req: any, res: any) {
             return;
         }
 
-        const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, measurementId: { $gt: lastId }, isDeleted: false }).limit(10);
+        const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, _id: { $gt: lastId }, isDeleted: false }).limit(10);
 
         if (!measurements || measurements.length === 0) {
             res.status(200).json({
@@ -485,7 +485,7 @@ export async function getMoreMeasurementsFromHolderSide(req: any, res: any) {
             return;
         }
 
-        const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, measurementId: { $gt: lastId }, isDeleted: false }).limit(10);
+        const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, _id: { $gt: lastId }, isDeleted: false }).limit(10);
 
         if (!measurements || measurements.length === 0) {
             res.status(200).json({
