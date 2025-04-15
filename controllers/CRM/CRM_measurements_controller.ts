@@ -341,27 +341,35 @@ export async function getMoreMeasurementsFromWorkerSide(req: any, res: any) {
             return;
         }
 
-        const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, _id: { $gt: lastId }, isDeleted: false }).limit(10);
+        try {
+            const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, _id: { $gt: lastId }, isDeleted: false }).limit(10);
 
-        if (!measurements || measurements.length === 0) {
+            if (!measurements || measurements.length === 0) {
+                res.status(200).json({
+                    status: false,
+                    msg: "No measurements found.",
+                    data: [],
+                    lastPage: true,
+                    lastId: ""
+                });
+                return;
+            }
+
             res.status(200).json({
+                status: true,
+                msg: "Measurements fetched successfully.",
+                data: measurements,
+                lastPage: measurements.length < 10 ? true : false,
+                lastId: measurements[measurements.length - 1]._id
+            });
+            return;
+        } catch (error) {
+            res.status(400).json({
                 status: false,
-                msg: "No measurements found.",
-                data: [],
-                lastPage: true,
-                lastId: ""
+                msg: "Error fetching measurements."
             });
             return;
         }
-
-        res.status(200).json({
-            status: true,
-            msg: "Measurements fetched successfully.",
-            data: measurements,
-            lastPage: measurements.length < 10 ? true : false,
-            lastId: measurements[measurements.length - 1]._id
-        });
-        return;
     });
 };
 
@@ -485,27 +493,34 @@ export async function getMoreMeasurementsFromHolderSide(req: any, res: any) {
             return;
         }
 
-        const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, _id: { $gt: lastId }, isDeleted: false }).limit(10);
+        try {
+            const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, _id: { $gt: lastId }, isDeleted: false }).limit(10);
+            if (!measurements || measurements.length === 0) {
+                res.status(200).json({
+                    status: false,
+                    msg: "No measurements found.",
+                    data: [],
+                    lastPage: true,
+                    lastId: ""
+                });
+                return;
+            }
 
-        if (!measurements || measurements.length === 0) {
             res.status(200).json({
+                status: true,
+                msg: "Measurements fetched successfully.",
+                data: measurements,
+                lastPage: measurements.length < 10 ? true : false,
+                lastId: measurements[measurements.length - 1]._id
+            });
+            return;
+        } catch (error) {
+            res.status(400).json({
                 status: false,
-                msg: "No measurements found.",
-                data: [],
-                lastPage: true,
-                lastId: ""
+                msg: "Error fetching measurements."
             });
             return;
         }
-
-        res.status(200).json({
-            status: true,
-            msg: "Measurements fetched successfully.",
-            data: measurements,
-            lastPage: measurements.length < 10 ? true : false,
-            lastId: measurements[measurements.length - 1]._id
-        });
-        return;
     });
 };
 
