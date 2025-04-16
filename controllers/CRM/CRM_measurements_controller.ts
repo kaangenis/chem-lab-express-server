@@ -25,6 +25,7 @@ export async function createNewMeasurementFromWorkerSide(req: any, res: any) {
         }
 
         const {
+            measurementName,
             measurementAuthorizedPersons,
             measurementInformations,
             measurementOtherDetails,
@@ -37,6 +38,7 @@ export async function createNewMeasurementFromWorkerSide(req: any, res: any) {
         } = req.body;
 
         if (
+            !measurementName ||
             !measurementAuthorizedPersons ||
             !measurementInformations ||
             !measurementOtherDetails ||
@@ -78,6 +80,7 @@ export async function createNewMeasurementFromWorkerSide(req: any, res: any) {
 
         const createNewMeasurement = await CRM_MeasurementModel.create({
             measurementId: measurementId,
+            measurementName: measurementName,
             measurementOrganizationId: findOrganization.organizationId,
             measurementPlanningId: measurementPlanningId,
             measurementStartDate: measurementStartDate,
@@ -136,6 +139,7 @@ export async function createNewMeasurementFromHolderSide(req: any, res: any) {
         }
 
         const {
+            measurementName,
             measurementAuthorizedPersons,
             measurementInformations,
             measurementOtherDetails,
@@ -148,6 +152,7 @@ export async function createNewMeasurementFromHolderSide(req: any, res: any) {
         } = req.body;
 
         if (
+            !measurementName ||
             !measurementAuthorizedPersons ||
             !measurementInformations ||
             !measurementOtherDetails ||
@@ -189,6 +194,7 @@ export async function createNewMeasurementFromHolderSide(req: any, res: any) {
 
         const createNewMeasurement = await CRM_MeasurementModel.create({
             measurementId: measurementId,
+            measurementName: measurementName,
             measurementOrganizationId: findOrganization.organizationId,
             measurementPlanningId: measurementPlanningId,
             measurementStartDate: measurementStartDate,
@@ -556,6 +562,7 @@ export async function updateMeasurementFromWorkerSide(req: any, res: any) {
 
         const {
             measurementId,
+            measurementName,
             measurementAuthorizedPersons,
             measurementInformations,
             measurementOtherDetails,
@@ -569,6 +576,7 @@ export async function updateMeasurementFromWorkerSide(req: any, res: any) {
 
         if (
             !measurementId ||
+            !measurementName ||
             !measurementAuthorizedPersons ||
             !measurementInformations ||
             !measurementOtherDetails ||
@@ -616,6 +624,7 @@ export async function updateMeasurementFromWorkerSide(req: any, res: any) {
             return;
         }
 
+        findMeasurement.measurementName = measurementName;
         findMeasurement.measurementAuthorizedPersons = measurementAuthorizedPersons;
         findMeasurement.measurementInformations = measurementInformations;
         findMeasurement.measurementOtherDetails = measurementOtherDetails;
@@ -669,6 +678,7 @@ export async function updateMeasurementFromHolderSide(req: any, res: any) {
         }
 
         const {
+            measurementName,
             measurementId,
             measurementAuthorizedPersons,
             measurementInformations,
@@ -683,6 +693,7 @@ export async function updateMeasurementFromHolderSide(req: any, res: any) {
         } = req.body;
 
         if (
+            !measurementName ||
             !measurementId ||
             !measurementAuthorizedPersons ||
             !measurementInformations ||
@@ -732,6 +743,7 @@ export async function updateMeasurementFromHolderSide(req: any, res: any) {
             return;
         }
 
+        findMeasurement.measurementName = measurementName;
         findMeasurement.measurementAuthorizedPersons = measurementAuthorizedPersons;
         findMeasurement.measurementInformations = measurementInformations;
         findMeasurement.measurementOtherDetails = measurementOtherDetails;
@@ -946,7 +958,7 @@ export async function deleteMeasurementFromHolderSide(req: any, res: any) {
     })
 };
 
-export async function searchMeasurementWithMeasurementScopeFromWorkerSide(req: any, res: any) {
+export async function searchMeasurementWithMeasurementNameFromWorkerSide(req: any, res: any) {
     let accessToken = req.headers.authorization;
 
     if (!accessToken) {
@@ -968,9 +980,9 @@ export async function searchMeasurementWithMeasurementScopeFromWorkerSide(req: a
             return;
         }
 
-        const { measurementScope } = req.query;
+        const { measurementName } = req.query;
 
-        if (!measurementScope) {
+        if (!measurementName) {
             res.status(400).json({
                 status: false,
                 msg: "Missing Fields, Please check API Documents."
@@ -999,7 +1011,7 @@ export async function searchMeasurementWithMeasurementScopeFromWorkerSide(req: a
         }
 
         try {
-            const findMeasurement = await CRM_MeasurementModel.findOne({ measurementInformations: { $regex: measurementScope, $options: "i" }, measurementOrganizationId: findOrganization.organizationId, isDeleted: false })
+            const findMeasurement = await CRM_MeasurementModel.findOne({ $text: { $search: measurementName }, measurementOrganizationId: findOrganization.organizationId, isDeleted: false })
 
             if (!findMeasurement) {
                 res.status(400).json({
@@ -1025,7 +1037,7 @@ export async function searchMeasurementWithMeasurementScopeFromWorkerSide(req: a
     });
 };
 
-export async function searchMeasurementWithMeasurementScopeFromHolderSide(req: any, res: any) {
+export async function searchMeasurementWithMeasurementNameFromHolderSide(req: any, res: any) {
     let accessToken = req.headers.authorization;
 
     if (!accessToken) {
@@ -1047,9 +1059,9 @@ export async function searchMeasurementWithMeasurementScopeFromHolderSide(req: a
             return;
         }
 
-        const { measurementScope } = req.query;
+        const { measurementName } = req.query;
 
-        if (!measurementScope) {
+        if (!measurementName) {
             res.status(400).json({
                 status: false,
                 msg: "Missing Fields, Please check API Documents."
@@ -1079,7 +1091,7 @@ export async function searchMeasurementWithMeasurementScopeFromHolderSide(req: a
 
         try {
 
-            const findMeasurement = await CRM_MeasurementModel.findOne({ measurementInformations: { $regex: measurementScope, $options: "i" }, measurementOrganizationId: findOrganization.organizationId, isDeleted: false })
+            const findMeasurement = await CRM_MeasurementModel.findOne({ $text: { $search: measurementName }, measurementOrganizationId: findOrganization.organizationId, isDeleted: false })
 
             if (!findMeasurement) {
                 res.status(400).json({

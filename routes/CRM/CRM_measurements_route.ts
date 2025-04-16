@@ -10,8 +10,8 @@ import {
     updateMeasurementFromHolderSide,
     deleteMeasurementFromWorkerSide,
     deleteMeasurementFromHolderSide,
-    searchMeasurementWithMeasurementScopeFromWorkerSide,
-    searchMeasurementWithMeasurementScopeFromHolderSide,
+    searchMeasurementWithMeasurementNameFromWorkerSide,
+    searchMeasurementWithMeasurementNameFromHolderSide,
 } from "../../controllers/CRM/CRM_measurements_controller";
 
 const CRM_measurementsRoute: Router = Router();
@@ -26,7 +26,7 @@ CRM_measurementsRoute.put("/worker/update-measurement", updateMeasurementFromWor
 CRM_measurementsRoute.put("/holder/update-measurement", updateMeasurementFromHolderSide);
 CRM_measurementsRoute.delete("/worker/delete-measurement", deleteMeasurementFromWorkerSide);
 CRM_measurementsRoute.delete("/holder/delete-measurement", deleteMeasurementFromHolderSide);
-CRM_measurementsRoute.get("/worker/search-measurement", searchMeasurementWithMeasurementScopeFromWorkerSide);
-CRM_measurementsRoute.get("/holder/search-measurement", searchMeasurementWithMeasurementScopeFromHolderSide);
+CRM_measurementsRoute.get("/worker/search-measurement", searchMeasurementWithMeasurementNameFromWorkerSide);
+CRM_measurementsRoute.get("/holder/search-measurement", searchMeasurementWithMeasurementNameFromHolderSide);
 
 export default CRM_measurementsRoute;

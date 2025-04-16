@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const CRM_Measurement = new mongoose.Schema({
     measurementId: String,
+    measurementName: String,
     measurementOrganizationId: String,
     measurementPlanningId: String,
     measurementStartDate: Number,
@@ -33,6 +34,8 @@ const CRM_Measurement = new mongoose.Schema({
     createdAt: Number,
     updatedAt: Number,
 });
+
+CRM_Measurement.index({ measurementName: "text", measurementPlanningId: "text" });
 
 const CRM_MeasurementModel = mongoose.model("CRM_Measurement", CRM_Measurement);
 
