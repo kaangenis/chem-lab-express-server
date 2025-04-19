@@ -22,6 +22,7 @@ export async function createNewMeasurementFromWorkerSide(req: any, res: any) {
                 status: false,
                 msg: "Invalid Token."
             });
+            return;
         }
 
         const {
