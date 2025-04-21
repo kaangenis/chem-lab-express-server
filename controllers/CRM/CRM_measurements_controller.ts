@@ -272,7 +272,7 @@ export async function getInitialMeasurementsFromWorkerSide(req: any, res: any) {
             return;
         }
 
-        const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, isDeleted: false }).limit(10);
+        const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId, isDeleted: false }).sort({ createdAt: -1 }).limit(10);
 
         if (!measurements || measurements.length === 0) {
             res.status(200).json({
@@ -428,7 +428,7 @@ export async function getInitialMeasurementsFromHolderSide(req: any, res: any) {
             return;
         }
 
-        const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId }).limit(10);
+        const measurements = await CRM_MeasurementModel.find({ measurementOrganizationId: findOrganization.organizationId }).sort({ createdAt: -1 }).limit(10);
 
         if (!measurements || measurements.length === 0) {
             res.status(200).json({
