@@ -43,6 +43,8 @@ const CRM_Offer = new mongoose.Schema({
     updatedAt: Number,
 });
 
+
+CRM_Offer.index({ offerId: "text", offerOrganizationId: "text", offerCustomerName: "text", offerContactName: "text" });
 const CRM_OfferModel = mongoose.model("CRM_Offer", CRM_Offer);
 
 export { CRM_OfferModel };
