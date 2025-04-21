@@ -646,9 +646,11 @@ export async function updateMeasurementFromWorkerSide(req: any, res: any) {
             });
             return;
         } catch (error) {
+            console.log(String(error));
             res.status(400).json({
                 status: false,
-                msg: "Error updating measurement."
+                msg: "Error updating measurement.",
+                error: String(error)
             });
             return;
         }
