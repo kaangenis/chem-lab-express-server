@@ -113,7 +113,7 @@ app.get("/", (req: any, res: any) => {
 
 app.use("/api/admin", adminRouter);
 app.use("/api/organization", organizationRouter);
-app.use("/api/crm/offer", CRM_offerRouter);
+app.use("/api/crm/offers", CRM_offerRouter);
 app.use("/api/crm/activities", CRM_activitiesRoute);
 app.use("/api/crm/customers", CRM_customerRoute);
 app.use("/api/crm/measurements", CRM_measurementsRoute);
