@@ -12,6 +12,7 @@ import CRM_offerRouter from "./routes/CRM/CRM_offer_route";
 import CRM_activitiesRoute from "./routes/CRM/CRM_activities_route";
 import CRM_customerRoute from "./routes/CRM/CRM_customer_route";
 import CRM_measurementsRoute from "./routes/CRM/CRM_measurements_route";
+import CRM_missionsRoute from "./routes/CRM/CRM_mission_route";
 
 dotenv.config();
 
@@ -117,6 +118,8 @@ app.use("/api/crm/offers", CRM_offerRouter);
 app.use("/api/crm/activities", CRM_activitiesRoute);
 app.use("/api/crm/customers", CRM_customerRoute);
 app.use("/api/crm/measurements", CRM_measurementsRoute);
+app.use("/api/crm/missions", CRM_missionsRoute);
+
 
 server.listen(port, () => {
   console.log(`Sunucu ${port} portunda çalışıyor...`);

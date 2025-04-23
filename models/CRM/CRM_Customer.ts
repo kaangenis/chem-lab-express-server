@@ -7,12 +7,6 @@ const CRM_Customer = new mongoose.Schema({
         customerCode: String,
         customerName: String,
         customerTitle: String,
-        customerAuthorizedData: {
-            customerAuthorizedId: String,
-            customerAuthorizedName: String,
-            customerAuthorizedPhone: String,
-            customerAuthorizedEmail: String,
-        },
         customerType: String,
         customerCategory: String,
         customerIndustry: String,
@@ -21,6 +15,12 @@ const CRM_Customer = new mongoose.Schema({
         customerCrew: Array,
         customerDescription: String,
         customerTracking: Boolean,
+    },
+    customerAuthorizedData: {
+        customerAuthorizedId: String,
+        customerAuthorizedName: String,
+        customerAuthorizedPhone: String,
+        customerAuthorizedEmail: String,
     },
     customerContactDetails: {
         customerAddressType: String,

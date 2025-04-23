@@ -26,24 +26,26 @@ const CRM_Missions = new mongoose.Schema({
         missionActivityId: String,
         missionOfferId: String,
         missionPlanningId: String,
-        missionCustomerDetails: {
-            customerId: String,
-            customerName: String,
-            customerEmail: String,
-            customerPhone: String,
-            customerOrganizationId: String,
-            customerAddressType: String,
-            customerAddress: String,
-        },
         missionCompleteRate: Number,
         missionCompletedAt: Number,
-        addToAgenda: Boolean,
     },
+    missionCustomerDetails: {
+        customerId: String,
+        customerName: String,
+        customerEmail: String,
+        customerPhone: String,
+        customerOrganizationId: String,
+        customerAddressType: String,
+        customerAddress: String,
+    },
+    addToAgenda: Boolean,
     isDeleted: Boolean,
     status: Boolean,
     createdAt: Number,
     updatedAt: Number,
 });
+
+CRM_Missions.index({ missionTitle: "text"});
 
 const CRM_MissionsModel = mongoose.model("CRM_Missions", CRM_Missions);
 
