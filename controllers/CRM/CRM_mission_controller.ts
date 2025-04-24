@@ -44,7 +44,7 @@ export async function createNewMissionFromWorkerSide(req: any, res: any) {
             !missionsDetails ||
             !missionOtherDetails ||
             !missionCustomerDetails ||
-            !addToAgenda
+            addToAgenda === undefined
         ) {
             res.status(400).json({
                 status: false,
@@ -151,7 +151,7 @@ export async function createNewMissionFromHolderSide(req: any, res: any) {
             !missionsDetails ||
             !missionOtherDetails ||
             !missionCustomerDetails ||
-            !addToAgenda
+            addToAgenda === undefined
         ) {
             res.status(400).json({
                 status: false,
