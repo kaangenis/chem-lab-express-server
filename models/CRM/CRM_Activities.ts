@@ -23,6 +23,7 @@ const CRM_Activities = new mongoose.Schema({
     updatedAt: Number,
 });
 
+CRM_Activities.index({ activityCustomerName: "text", activityContacts: "text" });
 const CRM_ActivitesModel = mongoose.model("CRM_Activities", CRM_Activities);
 
 export { CRM_ActivitesModel };
