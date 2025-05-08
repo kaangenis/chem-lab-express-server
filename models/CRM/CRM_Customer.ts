@@ -3,9 +3,10 @@ import mongoose from "mongoose";
 const CRM_Customer = new mongoose.Schema({
     customerId: String,
     customerOrganizationId: String,
+    customerName: String,
+    customerPhone1: String,
     customerInformations: {
         customerCode: String,
-        customerName: String,
         customerTitle: String,
         customerType: String,
         customerCategory: String,
@@ -30,8 +31,6 @@ const CRM_Customer = new mongoose.Schema({
         customerCity: String,
         customerDistrict: String,
         customerPostalCode: String,
-        customerPhoneCode: String,
-        customerPhone1: String,
         customerPhone2: String,
         customerFax: String,
         customerMobilePhone: String,
@@ -61,22 +60,34 @@ const CRM_Customer = new mongoose.Schema({
     updatedAt: Number,
 });
 
-const CRM_AuthorizedPerson = new mongoose.Schema({
-    customerAuthorizedPersonId: String,
-    customerAuthorizedPersonName: String,
-    customerOrganizationId: String,
-    customerAuthorizedPersonDetails: {
-        customerAuthorizedPersonTitle: String,
-        customerAuthorizedPersonDepartment: String,
-        customerAuthorizedPersonPhone1: String,
-        customerAuthorizedPersonPhone2: String,
-        customerAuthorizedPersonEmail1: String,
-        customerAuthorizedPersonEmail2: String,
-        customerAuthorizedPersonFax: String,
+const CRM_Contact = new mongoose.Schema({
+    contactId: String,
+    contactName: String,
+    contactOrganizationId: String,
+    contactPhone1: String,
+    contactDetails: {
+        contactTitle: String,
+        contactDepartment: String,
+        contactPhone2: String,
+        contactEmail1: String,
+        contactEmail2: String,
+        contactFaxNumber: String,
     },
-    customerAssistantDetails: {
-        customerAssistantName: String,
-        customerAssistantPhone: String,
+    contactOtherDetails: {
+        contactAddressType: String,
+        contactAuthorizationType: String,
+        contactPositiviteNegativeStatus: String,
+        contactStatus: String,
+        contactGender: String,
+        contactBirthDate: Number,
+        contactMarriageStatus: String,
+        contactMarriageDate: Number,
+        contactDescription: String,
+    },
+    contactAssistantDetails: {
+        contactAssistantName: String,
+        contactAssistantPhone: String,
+        contactCardVisit: String,
     },
     isDeleted: Boolean,
     status: Boolean,
@@ -84,7 +95,10 @@ const CRM_AuthorizedPerson = new mongoose.Schema({
     updatedAt: Number,
 });
 
-const CRM_CustomerModel = mongoose.model("CRM_Customer", CRM_Customer);
-const CRM_CustomerAuthorizedPersonModel = mongoose.model("CRM_CustomerAuthorizedPerson", CRM_AuthorizedPerson);
+CRM_Customer.index({ customerName: "text", customerPhone1: "text" });
+CRM_Contact.index({ contactName: "text", contactPhone1: "text" });
 
-export { CRM_CustomerModel, CRM_CustomerAuthorizedPersonModel };
+const CRM_CustomerModel = mongoose.model("CRM_Customer", CRM_Customer);
+const CRM_ContactModel = mongoose.model("CRM_Contact", CRM_Contact);
+
+export { CRM_CustomerModel, CRM_ContactModel };

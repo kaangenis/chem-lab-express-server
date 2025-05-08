@@ -1,9 +1,806 @@
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import { OrganizationWorkerModel, OrganizationHolderModel } from "../../models/Organization";
-import { CRM_ActivitesModel } from "../../models/CRM/CRM_Activities";
+import { CRM_ContactModel } from "../../models/CRM/CRM_Customer";
 
-export async function createNewActivityFromWorkerSide(req: any, res: any) {
+
+export async function createNewContactFromWorkerSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+
+            return;
+        }
+
+        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID });
+
+        if (!findWorker) {
+            res.status(400).json({
+                status: false,
+                msg: "Worker not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId });
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+
+        const {
+            contactName,
+            contactPhone1,
+            contactDetails,
+            contactOtherDetails,
+            contactAssistantDetails,
+        } = req.body;
+
+        if (!contactName || !contactPhone1 || !contactDetails || !contactOtherDetails || !contactAssistantDetails) {
+            res.status(400).json({
+                status: false,
+                msg: "Missing Fields, Please check API Documents.",
+                data: [],
+            });
+            return;
+        }
+
+        const contactId = uuidv4();
+
+        const newContact = new CRM_ContactModel({
+            contactId,
+            contactName,
+            contactPhone1,
+            contactDetails,
+            contactOtherDetails,
+            contactAssistantDetails,
+        });
+
+        try {
+            await newContact.save();
+            res.status(200).json({
+                status: true,
+                msg: "Contact created successfully.",
+                data: newContact,
+            });
+            return;
+        } catch (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Error creating contact.",
+                data: [],
+            });
+            return;
+        }
+    });
+};
+
+export async function createNewContactFromHolderSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+
+            return;
+        }
+
+        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID });
+
+        if (!findHolder) {
+            res.status(400).json({
+                status: false,
+                msg: "Holder not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationHolderModel.findOne({ organizationId: findHolder.organizationId });
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+
+        const {
+            contactName,
+            contactPhone1,
+            contactDetails,
+            contactOtherDetails,
+            contactAssistantDetails,
+        } = req.body;
+
+        if (!contactName || !contactPhone1 || !contactDetails || !contactOtherDetails || !contactAssistantDetails) {
+            res.status(400).json({
+                status: false,
+                msg: "Missing Fields, Please check API Documents.",
+                data: [],
+            });
+            return;
+        }
+
+        const contactId = uuidv4();
+
+        const newContact = new CRM_ContactModel({
+            contactId,
+            contactName,
+            contactPhone1,
+            contactDetails,
+            contactOtherDetails,
+            contactAssistantDetails,
+        });
+
+        try {
+            await newContact.save();
+            res.status(200).json({
+                status: true,
+                msg: "Contact created successfully.",
+                data: newContact,
+            });
+            return;
+        } catch (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Error creating contact.",
+                data: [],
+            });
+            return;
+        }
+    });
+};
+
+export async function getInitialContactsFromWorkerSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+
+            return;
+        }
+
+        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID });
+
+        if (!findWorker) {
+            res.status(400).json({
+                status: false,
+                msg: "Worker not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId });
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+
+        const contacts = await CRM_ContactModel.find({
+            contactOrganizationId: findOrganization.organizationId,
+            isDeleted: false,
+            status: true,
+        }).sort({ createdAt: -1 }).limit(10);
+
+        if (!contacts || contacts.length === 0) {
+            res.status(200).json({
+                status: false,
+                msg: "No contacts found.",
+                data: [],
+            });
+            return;
+        };
+
+        res.status(200).json({
+            status: true,
+            msg: "Contacts fetched successfully.",
+            data: contacts,
+        });
+        return;
+    });
+};
+
+export async function getMoreContactsFromWorkerSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+
+            return;
+        }
+
+        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID });
+
+        if (!findWorker) {
+            res.status(400).json({
+                status: false,
+                msg: "Worker not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId });
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+        const { lastId } = req.query;
+
+        try {
+            const contacts = await CRM_ContactModel.find({
+                contactOrganizationId: findOrganization.organizationId,
+                _id: { $gt: lastId },
+                isDeleted: false,
+                status: true,
+            }).sort({ createdAt: -1 }).limit(10);
+
+            if (!contacts || contacts.length === 0) {
+                res.status(200).json({
+                    status: false,
+                    msg: "No contacts found.",
+                    data: [],
+                    lastPage: true,
+                    itemCount: 0,
+                    lastId: ""
+                });
+                return;
+            }
+
+            res.status(200).json({
+                status: true,
+                msg: "Contacts fetched successfully.",
+                data: contacts,
+                lastPage: contacts.length < 10 ? true : false,
+                lastId: contacts[contacts.length - 1]._id,
+                itemCount: contacts.length
+            });
+            return;
+        } catch (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Error fetching contacts."
+            });
+            return;
+        }
+    });
+};
+
+export async function getInitialContactsFromHolderSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+
+            return;
+        }
+
+        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID });
+
+        if (!findHolder) {
+            res.status(400).json({
+                status: false,
+                msg: "Holder not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationHolderModel.findOne({ organizationId: findHolder.organizationId });
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+
+        const contacts = await CRM_ContactModel.find({
+            contactOrganizationId: findOrganization.organizationId,
+            isDeleted: false,
+            status: true,
+        }).sort({ createdAt: -1 }).limit(10);
+
+        if (!contacts || contacts.length === 0) {
+            res.status(200).json({
+                status: false,
+                msg: "No contacts found.",
+                data: [],
+            });
+            return;
+        };
+
+        res.status(200).json({
+            status: true,
+            msg: "Contacts fetched successfully.",
+            data: contacts,
+        });
+        return;
+    });
+};
+
+export async function getMoreContactsFromHolderSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+
+            return;
+        }
+
+        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID });
+
+        if (!findHolder) {
+            res.status(400).json({
+                status: false,
+                msg: "Holder not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationHolderModel.findOne({ organizationId: findHolder.organizationId });
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+        const { lastId } = req.query;
+
+        try {
+            const contacts = await CRM_ContactModel.find({
+                contactOrganizationId: findOrganization.organizationId,
+                _id: { $gt: lastId },
+                isDeleted: false,
+                status: true,
+            }).sort({ createdAt: -1 }).limit(10);
+
+            if (!contacts || contacts.length === 0) {
+                res.status(200).json({
+                    status: false,
+                    msg: "No contacts found.",
+                    data: [],
+                    lastPage: true,
+                    itemCount: 0,
+                    lastId: ""
+                });
+                return;
+            }
+
+            res.status(200).json({
+                status: true,
+                msg: "Contacts fetched successfully.",
+                data: contacts,
+                lastPage: contacts.length < 10 ? true : false,
+                lastId: contacts[contacts.length - 1]._id,
+                itemCount: contacts.length
+            });
+            return;
+        } catch (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Error fetching contacts."
+            });
+            return;
+        }
+    });
+};
+
+export async function updateContactFromWorkerSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+
+            return;
+        }
+
+        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID });
+
+        if (!findWorker) {
+            res.status(400).json({
+                status: false,
+                msg: "Worker not found."
+            });
+            return;
+        }
+
+        const { contactId } = req.params;
+
+        const { contactName, contactPhone1, contactDetails, contactOtherDetails, contactAssistantDetails } = req.body;
+
+        const updateContact = await CRM_ContactModel.findOneAndUpdate({ contactId }, { contactName, contactPhone1, contactDetails, contactOtherDetails, contactAssistantDetails }, { new: true });
+
+        if (!updateContact) {
+            res.status(400).json({
+                status: false,
+                msg: "Contact not found."
+            });
+            return;
+        }
+
+        res.status(200).json({
+            status: true,
+            msg: "Contact updated successfully.",
+            data: updateContact,
+        });
+        return;
+    });
+};
+
+export async function updateContactFromHolderSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+
+            return;
+        }
+
+        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID });
+
+        if (!findHolder) {
+            res.status(400).json({
+                status: false,
+                msg: "Holder not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationHolderModel.findOne({ organizationId: findHolder.organizationId });
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+        const { contactId } = req.params;
+
+        const { contactName, contactPhone1, contactDetails, contactOtherDetails, contactAssistantDetails } = req.body;
+
+        const updateContact = await CRM_ContactModel.findOneAndUpdate({ contactId }, { contactName, contactPhone1, contactDetails, contactOtherDetails, contactAssistantDetails }, { new: true });
+
+        if (!updateContact) {
+            res.status(400).json({
+                status: false,
+                msg: "Contact not found."
+            });
+            return;
+        }
+
+        res.status(200).json({
+            status: true,
+            msg: "Contact updated successfully.",
+            data: updateContact,
+        });
+        return;
+    });
+};
+
+export async function deleteContactFromWorkerSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+
+            return;
+        }
+
+        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID });
+
+        if (!findWorker) {
+            res.status(400).json({
+                status: false,
+                msg: "Worker not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId });
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+        const { contactId } = req.params;
+
+        const deleteContact = await CRM_ContactModel.findOneAndUpdate({ contactId }, { isDeleted: true }, { new: true });
+
+        if (!deleteContact) {
+            res.status(400).json({
+                status: false,
+                msg: "Contact not found."
+            });
+            return;
+        }
+
+        res.status(200).json({
+            status: true,
+            msg: "Contact deleted successfully.",
+            data: deleteContact,
+        });
+        return;
+    });
+};
+
+export async function deleteContactFromHolderSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+
+            return;
+        }
+
+        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID });
+
+        if (!findHolder) {
+            res.status(400).json({
+                status: false,
+                msg: "Holder not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationHolderModel.findOne({ organizationId: findHolder.organizationId });
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+        const { contactId } = req.params;
+
+        const deleteContact = await CRM_ContactModel.findOneAndUpdate({ contactId }, { isDeleted: true }, { new: true });
+
+        if (!deleteContact) {
+            res.status(400).json({
+                status: false,
+                msg: "Contact not found."
+            });
+            return;
+        }
+
+        res.status(200).json({
+            status: true,
+            msg: "Contact deleted successfully.",
+            data: deleteContact,
+        });
+        return;
+    });
+};
+
+export async function searchContactsFromWorkerSide(req: any, res: any) {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    }
+
+    let splitToken = accessToken.split(' ')[1];
+
+    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error || user.tokenType !== "access") {
+            res.status(401).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+
+            return;
+        }
+
+        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID });
+
+        if (!findWorker) {
+            res.status(400).json({
+                status: false,
+                msg: "Worker not found."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId });
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization not found."
+            });
+            return;
+        }
+
+        const { searchQuery } = req.query;
+
+        const contacts = await CRM_ContactModel.find({
+            contactOrganizationId: findOrganization.organizationId,
+            isDeleted: false,
+            status: true,
+        });
+
+        res.status(200).json({
+            status: true,
+            msg: "Contacts fetched successfully.",
+            data: contacts,
+        });
+        return;
+    });
+};
+
+export async function searchContactsFromHolderSide(req: any, res: any) {
     let accessToken = req.headers.authorization;
 
     if (!accessToken) {
@@ -25,17 +822,17 @@ export async function createNewActivityFromWorkerSide(req: any, res: any) {
             return;
         }
 
-        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID });
+        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID });
 
-        if (!findWorker) {
+        if (!findHolder) {
             res.status(400).json({
                 status: false,
-                msg: "Worker not found."
+                msg: "Holder not found."
             });
             return;
         }
 
-        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId });
+        const findOrganization = await OrganizationHolderModel.findOne({ organizationId: findHolder.organizationId });
 
         if (!findOrganization) {
             res.status(400).json({
@@ -45,1043 +842,18 @@ export async function createNewActivityFromWorkerSide(req: any, res: any) {
             return;
         }
 
-        const {
-            activityCustomerId,
-            activityCustomerName,
-            activityContacts,
-            activityType,
-            activityStatus,
-            activityDate,
-            activityOtherDetails
-        } = req.body;
+        const { searchQuery } = req.query;
 
-        if (
-            !activityCustomerId ||
-            !activityCustomerName ||
-            !activityContacts ||
-            !activityType ||
-            !activityStatus ||
-            !activityDate ||
-            !activityOtherDetails
-        ) {
-            res.status(400).json({
-                status: false,
-                msg: "Missing Fields, Please check API Documents."
-            });
-            return;
-        };
-
-        //Add customer support later
-
-        const activityId = uuidv4();
-
-        const newActivity = new CRM_ActivitesModel({
-            activityId: activityId,
-            activityOrganizationId: findOrganization.organizationId,
-            activityCustomerId: activityCustomerId,
-            activityCustomerName: activityCustomerName,
-            activityContacts: activityContacts,
-            activityType: activityType,
-            activityStatus: activityStatus,
-            activityDate: activityDate,
-            activityOtherDetails: activityOtherDetails,
+        const contacts = await CRM_ContactModel.find({
+            contactOrganizationId: findOrganization.organizationId,
             isDeleted: false,
             status: true,
-            createdAt: req.currentTime,
-            updatedAt: req.currentTime,
         });
-
-        try {
-            await newActivity.save();
-            res.status(200).json({
-                status: true,
-                msg: "Activity created successfully.",
-                data: newActivity,
-            });
-            return;
-        } catch (error) {
-            res.status(400).json({
-                status: false,
-                msg: "Error creating activity."
-            });
-            return;
-        };
-    });
-};
-
-export async function createNewActivityFromHolderSide(req: any, res: any) {
-    let accessToken = req.headers.authorization;
-
-    if (!accessToken) {
-        res.status(400).json({
-            status: false,
-            msg: "Missing Fields, Please check API Documents."
-        });
-        return;
-    };
-
-    let splitToken = accessToken.split(' ')[1];
-
-    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
-        if (error || user.tokenType !== "access") {
-            res.status(401).json({
-                status: false,
-                msg: "Invalid Token."
-            });
-            return;
-        };
-
-        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID });
-
-        if (!findHolder) {
-            res.status(400).json({
-                status: false,
-                msg: "Holder not found."
-            });
-            return;
-        };
-
-        const findOrganization = await OrganizationHolderModel.findOne({ organizationId: findHolder.organizationId });
-
-        if (!findOrganization) {
-            res.status(400).json({
-                status: false,
-                msg: "Organization not found."
-            });
-            return;
-        };
-
-        const {
-            activityCustomerId,
-            activityCustomerName,
-            activityContacts,
-            activityType,
-            activityStatus,
-            activityDate,
-            activityOtherDetails
-        } = req.body;
-
-        if (
-            !activityCustomerId ||
-            !activityCustomerName ||
-            !activityContacts ||
-            !activityType ||
-            !activityStatus ||
-            !activityDate ||
-            !activityOtherDetails
-        ) {
-            res.status(400).json({
-                status: false,
-                msg: "Missing Fields, Please check API Documents."
-            });
-            return;
-        };
-
-        const activityId = uuidv4();
-
-        const newActivity = new CRM_ActivitesModel({
-            activityId: activityId,
-            activityOrganizationId: findOrganization.organizationId,
-            activityCustomerId: activityCustomerId,
-            activityCustomerName: activityCustomerName,
-            activityContacts: activityContacts,
-            activityType: activityType,
-            activityStatus: activityStatus,
-            activityDate: activityDate,
-            activityOtherDetails: activityOtherDetails,
-            isDeleted: false,
-            status: true,
-            createdAt: req.currentTime,
-            updatedAt: req.currentTime,
-        });
-
-        try {
-            await newActivity.save();
-            res.status(200).json({
-                status: true,
-                msg: "Activity created successfully.",
-                data: newActivity,
-            });
-            return;
-        } catch (error) {
-            res.status(400).json({
-                status: false,
-                msg: "Error creating activity."
-            });
-            return;
-        };
-    });
-};
-
-export async function getInitialActivitiesFromWorkerSide(req: any, res: any) {
-    let accessToken = req.headers.authorization;
-
-    if (!accessToken) {
-        res.status(400).json({
-            status: false,
-            msg: "Missing Fields, Please check API Documents."
-        });
-        return;
-    };
-
-    let splitToken = accessToken.split(' ')[1];
-
-    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
-        if (error || user.tokenType !== "access") {
-            res.status(401).json({
-                status: false,
-                msg: "Invalid Token."
-            });
-            return;
-        };
-
-        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID });
-
-        if (!findWorker) {
-            res.status(400).json({
-                status: false,
-                msg: "Worker not found."
-            });
-            return;
-        };
-
-        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId });
-
-        if (!findOrganization) {
-            res.status(400).json({
-                status: false,
-                msg: "Organization not found."
-            });
-            return;
-        };
-
-        const activities = await CRM_ActivitesModel.find({
-            activityOrganizationId: findOrganization.organizationId,
-            isDeleted: false,
-            status: true,
-        }).sort({ createdAt: -1 }).limit(10);
-
-        if (!activities || activities.length === 0) {
-            res.status(200).json({
-                status: false,
-                msg: "No activities found.",
-                data: [],
-            });
-            return;
-        };
 
         res.status(200).json({
             status: true,
-            msg: "Activities fetched successfully.",
-            data: activities,
-        });
-        return;
-    });
-};
-
-export async function getMoreActivitiesFromWorkerSide(req: any, res: any) {
-    let accessToken = req.headers.authorization;
-
-    if (!accessToken) {
-        res.status(400).json({
-            status: false,
-            msg: "Missing Fields, Please check API Documents."
-        });
-        return;
-    };
-
-    let splitToken = accessToken.split(' ')[1];
-
-    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
-        if (error || user.tokenType !== "access") {
-            res.status(401).json({
-                status: false,
-                msg: "Invalid Token."
-            });
-            return;
-        };
-
-        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID });
-
-        if (!findWorker) {
-            res.status(400).json({
-                status: false,
-                msg: "Worker not found."
-            });
-            return;
-        };
-
-        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId });
-
-        if (!findOrganization) {
-            res.status(400).json({
-                status: false,
-                msg: "Organization not found."
-            });
-            return;
-        };
-
-        const { lastId } = req.query;
-
-        if (!lastId) {
-            res.status(400).json({
-                status: false,
-                msg: "Missing Fields, Please check API Documents."
-            });
-            return;
-        };
-
-        try {
-            const activities = await CRM_ActivitesModel.find({
-                activityOrganizationId: findOrganization.organizationId,
-                _id: { $gt: lastId },
-                isDeleted: false,
-                status: true,
-            }).sort({ createdAt: -1 }).limit(10);
-
-            if (!activities || activities.length === 0) {
-                res.status(200).json({
-                    status: false,
-                    msg: "No activities found.",
-                    data: [],
-                    lastPage: true,
-                    lastId: "",
-                    itemCount: 0,
-                });
-                return;
-            }
-
-            res.status(200).json({
-                status: true,
-                msg: "Activities fetched successfully.",
-                data: activities,
-                lastPage: activities.length < 10 ? true : false,
-                lastId: activities[activities.length - 1]._id,
-                itemCount: activities.length,
-            });
-            return;
-        } catch (error) {
-            res.status(400).json({
-                status: false,
-                msg: "Error fetching activities."
-            });
-            return;
-        };
-    });
-};
-
-export async function getInitialActivitiesFromHolderSide(req: any, res: any) {
-    let accessToken = req.headers.authorization;
-
-    if (!accessToken) {
-        res.status(400).json({
-            status: false,
-            msg: "Missing Fields, Please check API Documents."
-        });
-        return;
-    };
-
-    let splitToken = accessToken.split(' ')[1];
-
-    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
-        if (error || user.tokenType !== "access") {
-            res.status(401).json({
-                status: false,
-                msg: "Invalid Token."
-            });
-            return;
-        };
-
-        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID });
-
-        if (!findHolder) {
-            res.status(400).json({
-                status: false,
-                msg: "Holder not found."
-            });
-            return;
-        };
-
-        const findOrganization = await OrganizationHolderModel.findOne({ organizationId: findHolder.organizationId });
-
-        if (!findOrganization) {
-            res.status(400).json({
-                status: false,
-                msg: "Organization not found."
-            });
-            return;
-        };
-
-        const activities = await CRM_ActivitesModel.find({
-            activityOrganizationId: findOrganization.organizationId,
-            isDeleted: false,
-            status: true,
-        }).sort({ createdAt: -1 }).limit(10);
-
-        if (!activities || activities.length === 0) {
-            res.status(200).json({
-                status: false,
-                msg: "No activities found.",
-                data: [],
-            });
-            return;
-        };
-
-        res.status(200).json({
-            status: true,
-            msg: "Activities fetched successfully.",
-            data: activities,
-        });
-        return;
-    });
-};
-
-export async function getMoreActivitiesFromHolderSide(req: any, res: any) {
-    let accessToken = req.headers.authorization;
-
-    if (!accessToken) {
-        res.status(400).json({
-            status: false,
-            msg: "Missing Fields, Please check API Documents."
-        });
-        return;
-    };
-
-    let splitToken = accessToken.split(' ')[1];
-
-    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
-        if (error || user.tokenType !== "access") {
-            res.status(401).json({
-                status: false,
-                msg: "Invalid Token."
-            });
-            return;
-        };
-
-        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID });
-
-        if (!findHolder) {
-            res.status(400).json({
-                status: false,
-                msg: "Holder not found."
-            });
-            return;
-        };
-
-        const findOrganization = await OrganizationHolderModel.findOne({ organizationId: findHolder.organizationId });
-
-        if (!findOrganization) {
-            res.status(400).json({
-                status: false,
-                msg: "Organization not found."
-            });
-            return;
-        };
-
-        const { lastId } = req.query;
-
-        if (!lastId) {
-            res.status(400).json({
-                status: false,
-                msg: "Missing Fields, Please check API Documents."
-            });
-            return;
-        };
-
-        try {
-            const activities = await CRM_ActivitesModel.find({
-                activityOrganizationId: findOrganization.organizationId,
-                _id: { $gt: lastId },
-                isDeleted: false,
-                status: true,
-            }).sort({ createdAt: -1 }).limit(10);
-
-            if (!activities || activities.length === 0) {
-                res.status(200).json({
-                    status: false,
-                    msg: "No activities found.",
-                    data: [],
-                    lastPage: true,
-                    lastId: "",
-                    itemCount: 0,
-                });
-                return;
-            }
-
-            res.status(200).json({
-                status: true,
-                msg: "Activities fetched successfully.",
-                data: activities,
-                lastPage: activities.length < 10 ? true : false,
-                lastId: activities[activities.length - 1]._id,
-                itemCount: activities.length,
-            });
-            return;
-        } catch (error) {
-            res.status(400).json({
-                status: false,
-                msg: "Error fetching activities."
-            });
-            return;
-        };
-    });
-};
-
-export async function updateActivityFromWorkerSide(req: any, res: any) {
-    let accessToken = req.headers.authorization;
-
-    if (!accessToken) {
-        res.status(400).json({
-            status: false,
-            msg: "Missing Fields, Please check API Documents."
-        });
-        return;
-    };
-
-    let splitToken = accessToken.split(' ')[1];
-
-    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
-        if (error || user.tokenType !== "access") {
-            res.status(401).json({
-                status: false,
-                msg: "Invalid Token."
-            });
-            return;
-        };
-
-        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID });
-
-        if (!findWorker) {
-            res.status(400).json({
-                status: false,
-                msg: "Worker not found."
-            });
-            return;
-        };
-
-        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId });
-
-        if (!findOrganization) {
-            res.status(400).json({
-                status: false,
-                msg: "Organization not found."
-            });
-            return;
-        };
-
-        const {
-            activityId,
-            activityCustomerId,
-            activityCustomerName,
-            activityContacts,
-            activityType,
-            activityStatus,
-            activityDate,
-            activityOtherDetails
-        } = req.body;
-
-        if (!activityId ||
-            !activityCustomerId ||
-            !activityCustomerName ||
-            !activityContacts ||
-            !activityType ||
-            !activityStatus ||
-            !activityDate ||
-            !activityOtherDetails
-        ) {
-            res.status(400).json({
-                status: false,
-                msg: "Missing Fields, Please check API Documents."
-            });
-            return;
-        };
-
-        const findActivity = await CRM_ActivitesModel.findOne({
-            activityId: activityId,
-            activityOrganizationId: findOrganization.organizationId,
-            isDeleted: false,
-            status: true,
-        });
-
-        if (!findActivity) {
-            res.status(400).json({
-                status: false,
-                msg: "Activity not found."
-            });
-            return;
-        };
-
-        findActivity.activityCustomerId = activityCustomerId;
-        findActivity.activityCustomerName = activityCustomerName;
-        findActivity.activityContacts = activityContacts;
-        findActivity.activityType = activityType;
-        findActivity.activityStatus = activityStatus;
-        findActivity.activityDate = activityDate;
-        findActivity.activityOtherDetails = activityOtherDetails;
-        findActivity.updatedAt = req.currentTime;
-
-        try {
-            await findActivity.save();
-            res.status(200).json({
-                status: true,
-                msg: "Activity updated successfully.",
-                data: findActivity,
-            });
-            return;
-        } catch (error) {
-            res.status(400).json({
-                status: false,
-                msg: "Error updating activity."
-            });
-            return;
-        };
-    });
-};
-
-export async function updateActivityFromHolderSide(req: any, res: any) {
-    let accessToken = req.headers.authorization;
-
-    if (!accessToken) {
-        res.status(400).json({
-            status: false,
-            msg: "Missing Fields, Please check API Documents."
-        });
-        return;
-    };
-
-    let splitToken = accessToken.split(' ')[1];
-
-    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
-        if (error || user.tokenType !== "access") {
-            res.status(401).json({
-                status: false,
-                msg: "Invalid Token."
-            });
-            return;
-        };
-
-        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID });
-
-        if (!findHolder) {
-            res.status(400).json({
-                status: false,
-                msg: "Holder not found."
-            });
-            return;
-        };
-
-        const findOrganization = await OrganizationHolderModel.findOne({ organizationId: findHolder.organizationId });
-
-        if (!findOrganization) {
-            res.status(400).json({
-                status: false,
-                msg: "Organization not found."
-            });
-            return;
-        };
-
-        const {
-            activityId,
-            activityCustomerId,
-            activityCustomerName,
-            activityContacts,
-            activityType,
-            activityStatus,
-            activityDate,
-            activityOtherDetails
-        } = req.body;
-
-        if (!activityId ||
-            !activityCustomerId ||
-            !activityCustomerName ||
-            !activityContacts ||
-            !activityType ||
-            !activityStatus ||
-            !activityDate ||
-            !activityOtherDetails
-        ) {
-            res.status(400).json({
-                status: false,
-                msg: "Missing Fields, Please check API Documents."
-            });
-            return;
-        };
-
-        const findActivity = await CRM_ActivitesModel.findOne({
-            activityId: activityId,
-            activityOrganizationId: findOrganization.organizationId,
-            isDeleted: false,
-            status: true,
-        });
-
-        if (!findActivity) {
-            res.status(400).json({
-                status: false,
-                msg: "Activity not found."
-            });
-            return;
-        };
-
-        findActivity.activityCustomerId = activityCustomerId;
-        findActivity.activityCustomerName = activityCustomerName;
-        findActivity.activityContacts = activityContacts;
-        findActivity.activityType = activityType;
-        findActivity.activityStatus = activityStatus;
-        findActivity.activityDate = activityDate;
-        findActivity.activityOtherDetails = activityOtherDetails;
-        findActivity.updatedAt = req.currentTime;
-
-        try {
-            await findActivity.save();
-            res.status(200).json({
-                status: true,
-                msg: "Activity updated successfully.",
-                data: findActivity,
-            });
-            return;
-        } catch (error) {
-            res.status(400).json({
-                status: false,
-                msg: "Error updating activity."
-            });
-            return;
-        };
-    });
-};
-
-export async function deleteActivityFromWorkerSide(req: any, res: any) {
-    let accessToken = req.headers.authorization;
-
-    if (!accessToken) {
-        res.status(400).json({
-            status: false,
-            msg: "Missing Fields, Please check API Documents."
-        });
-        return;
-    };
-
-    let splitToken = accessToken.split(' ')[1];
-
-    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
-        if (error || user.tokenType !== "access") {
-            res.status(401).json({
-                status: false,
-                msg: "Invalid Token."
-            });
-            return;
-        };
-
-        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID });
-
-        if (!findWorker) {
-            res.status(400).json({
-                status: false,
-                msg: "Worker not found."
-            });
-            return;
-        };
-
-        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId });
-
-        if (!findOrganization) {
-            res.status(400).json({
-                status: false,
-                msg: "Organization not found."
-            });
-            return;
-        };
-
-        const {
-            activityId,
-        } = req.body;
-
-        if (!activityId) {
-            res.status(400).json({
-                status: false,
-                msg: "Missing Fields, Please check API Documents."
-            });
-            return;
-        };
-
-        const findActivity = await CRM_ActivitesModel.findOne({
-            activityId: activityId,
-            activityOrganizationId: findOrganization.organizationId,
-            isDeleted: false,
-            status: true,
-        });
-
-        if (!findActivity) {
-            res.status(400).json({
-                status: false,
-                msg: "Activity not found."
-            });
-            return;
-        };
-
-        findActivity.isDeleted = true;
-        findActivity.status = false;
-
-        try {
-            await findActivity.save();
-            res.status(200).json({
-                status: true,
-                msg: "Activity deleted successfully.",
-                data: findActivity,
-            });
-            return;
-        } catch (error) {
-            res.status(400).json({
-                status: false,
-                msg: "Error deleting activity."
-            });
-            return;
-        };
-    });
-};
-
-export async function deleteActivityFromHolderSide(req: any, res: any) {
-    let accessToken = req.headers.authorization;
-
-    if (!accessToken) {
-        res.status(400).json({
-            status: false,
-            msg: "Missing Fields, Please check API Documents."
-        });
-        return;
-    };
-
-    let splitToken = accessToken.split(' ')[1];
-
-    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
-        if (error || user.tokenType !== "access") {
-            res.status(401).json({
-                status: false,
-                msg: "Invalid Token."
-            });
-            return;
-        };
-
-        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID });
-
-        if (!findHolder) {
-            res.status(400).json({
-                status: false,
-                msg: "Holder not found."
-            });
-            return;
-        };
-
-        const findOrganization = await OrganizationHolderModel.findOne({ organizationId: findHolder.organizationId });
-
-        if (!findOrganization) {
-            res.status(400).json({
-                status: false,
-                msg: "Organization not found."
-            });
-            return;
-        };
-
-        const {
-            activityId,
-        } = req.body;
-
-        if (!activityId) {
-            res.status(400).json({
-                status: false,
-                msg: "Missing Fields, Please check API Documents."
-            });
-            return;
-        };
-
-        const findActivity = await CRM_ActivitesModel.findOne({
-            activityId: activityId,
-            activityOrganizationId: findOrganization.organizationId,
-            isDeleted: false,
-            status: true,
-        });
-
-        if (!findActivity) {
-            res.status(400).json({
-                status: false,
-                msg: "Activity not found."
-            });
-            return;
-        };
-
-        findActivity.isDeleted = true;
-        findActivity.status = false;
-
-        try {
-            await findActivity.save();
-            res.status(200).json({
-                status: true,
-                msg: "Activity deleted successfully.",
-                data: findActivity,
-            });
-            return;
-        } catch (error) {
-            res.status(400).json({
-                status: false,
-                msg: "Error deleting activity."
-            });
-            return;
-        };
-    });
-};
-
-export async function searchActivityWithActivityCustomerNameFromWorkerSide(req: any, res: any) {
-    let accessToken = req.headers.authorization;
-
-    if (!accessToken) {
-        res.status(400).json({
-            status: false,
-            msg: "Missing Fields, Please check API Documents."
-        });
-        return;
-    };
-
-    let splitToken = accessToken.split(' ')[1];
-
-    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
-        if (error || user.tokenType !== "access") {
-            res.status(401).json({
-                status: false,
-                msg: "Invalid Token."
-            });
-            return;
-        };
-
-        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID });
-
-        if (!findWorker) {
-            res.status(400).json({
-                status: false,
-                msg: "Worker not found."
-            });
-            return;
-        };
-
-        const findOrganization = await OrganizationWorkerModel.findOne({ organizationId: findWorker.organizationId });
-
-        if (!findOrganization) {
-            res.status(400).json({
-                status: false,
-                msg: "Organization not found."
-            });
-            return;
-        };
-
-        const {
-            activityCustomerName,
-        } = req.params;
-
-        if (!activityCustomerName) {
-            res.status(400).json({
-                status: false,
-                msg: "Missing Fields, Please check API Documents."
-            });
-            return;
-        };
-
-        const activities = await CRM_ActivitesModel.find({
-            activityCustomerName: { $regex: activityCustomerName, $options: "i" },
-            activityOrganizationId: findOrganization.organizationId,
-            isDeleted: false,
-            status: true,
-        }).sort({ createdAt: -1 });
-
-        if (!activities || activities.length === 0) {
-            res.status(200).json({
-                status: false,
-                msg: "No activities found.",
-                data: [],
-            });
-            return;
-        };
-
-        res.status(200).json({
-            status: true,
-            msg: "Activities fetched successfully.",
-            data: activities,
-        });
-        return;
-    });
-};
-
-export async function searchActivityWithActivityCustomerNameFromHolderSide(req: any, res: any) {
-    let accessToken = req.headers.authorization;
-
-    if (!accessToken) {
-        res.status(400).json({
-            status: false,
-            msg: "Missing Fields, Please check API Documents."
-        });
-        return;
-    };
-
-    let splitToken = accessToken.split(' ')[1];
-
-    jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
-        if (error || user.tokenType !== "access") {
-            res.status(401).json({
-                status: false,
-                msg: "Invalid Token."
-            });
-            return;
-        };
-
-        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID });
-
-        if (!findHolder) {
-            res.status(400).json({
-                status: false,
-                msg: "Holder not found."
-            });
-            return;
-        };
-
-        const findOrganization = await OrganizationHolderModel.findOne({ organizationId: findHolder.organizationId });
-
-        if (!findOrganization) {
-            res.status(400).json({
-                status: false,
-                msg: "Organization not found."
-            });
-            return;
-        };
-
-        const {
-            activityCustomerName,
-        } = req.params;
-
-        if (!activityCustomerName) {
-            res.status(400).json({
-                status: false,
-                msg: "Missing Fields, Please check API Documents."
-            });
-            return;
-        };
-
-        const activities = await CRM_ActivitesModel.find({
-            activityCustomerName: { $regex: activityCustomerName, $options: "i" },
-            activityOrganizationId: findOrganization.organizationId,
-            isDeleted: false,
-            status: true,
-        }).sort({ createdAt: -1 });
-
-        if (!activities || activities.length === 0) {
-            res.status(200).json({
-                status: false,
-                msg: "No activities found.",
-                data: [],
-            });
-            return;
-        };
-
-        res.status(200).json({
-            status: true,
-            msg: "Activities fetched successfully.",
-            data: activities,
+            msg: "Contacts fetched successfully.",
+            data: contacts,
         });
         return;
     });
