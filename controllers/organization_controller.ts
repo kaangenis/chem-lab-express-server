@@ -1,4 +1,4 @@
-import { OrganizationHolderModel, OrganizationInfoModel, OrganizationWorkerModel } from "../models/Organization";
+import { OrganizationCustomFieldModel, OrganizationHolderModel, OrganizationInfoModel, OrganizationWorkerModel } from "../models/Organization";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
@@ -591,4 +591,533 @@ export const getAllWorkersFromOrganizationSide = async (req: any, res: any) => {
         }
     });
 
+};
+
+export const updateWorkersWhitelist = async (req: any, res: any) => {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    };
+
+
+    let splitToken = accessToken.split(' ')[1];
+
+    await jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        };
+
+        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID });
+
+        if (!findHolder) {
+            res.status(400).json({
+                status: false,
+                msg: "Holder Not Found."
+            });
+            return;
+        };
+
+        if (findHolder.organizationHolderIsDeleted === true || findHolder.organizationHolderStatus === false) {
+            res.status(400).json({
+                status: false,
+                msg: "Holder Deleted or Blocked."
+            });
+            return;
+        };
+
+        const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: req.body.workerUID });
+
+        if (!findWorker) {
+            res.status(400).json({
+                status: false,
+                msg: "Worker Not Found."
+            });
+            return;
+        };
+
+        if (findWorker.organizationId !== findHolder.organizationId) {
+            res.status(400).json({
+                status: false,
+                msg: "Worker Not Found."
+            });
+            return;
+        };
+
+
+        const findOrganization = await OrganizationInfoModel.findOne({ organizationId: findWorker.organizationId });
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization Not Found."
+            });
+            return;
+        };
+
+        const { workerUID, whitelist } = req.body;
+
+        if (!workerUID || !whitelist) {
+            res.status(400).json({
+                status: false,
+                msg: "Missing Fields, Please check API Documents."
+            });
+            return;
+        };
+
+        const worker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: workerUID });
+
+        if (!worker) {
+            res.status(400).json({
+                status: false,
+                msg: "Worker Not Found."
+            });
+            return;
+        };
+
+        const updatedWhitelist = await OrganizationWorkerModel.findOneAndUpdate({ organizationWorkerUID: workerUID }, {
+            organizationWorkerWhitelist: whitelist,
+            updatedAt: req.currentTime,
+        });
+
+        res.status(200).json({
+            status: true,
+            msg: "Whitelist Updated Successfully."
+        });
+        return;
+    });
+};
+
+export const createNewCustomFieldFromHolderSide = async (req: any, res: any) => {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    };
+
+    let splitToken = accessToken.split(' ')[1];
+
+    await jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        };
+
+        const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID });
+
+        if (!findHolder) {
+            res.status(400).json({
+                status: false,
+                msg: "Holder Not Found."
+            });
+            return;
+        }
+
+        if (findHolder.organizationHolderIsDeleted === true || findHolder.organizationHolderStatus === false) {
+            res.status(400).json({
+                status: false,
+                msg: "Holder Deleted or Blocked."
+            });
+            return;
+        }
+
+        const findOrganization = await OrganizationInfoModel.findOne({ organizationId: findHolder.organizationId });
+
+        if (!findOrganization) {
+            res.status(400).json({
+                status: false,
+                msg: "Organization Not Found."
+            });
+            return;
+        }
+
+        const { organizationCustomFieldValues } = req.body;
+
+        if (!organizationCustomFieldValues) {
+            res.status(400).json({
+                status: false,
+                msg: "Missing Fields, Please check API Documents."
+            });
+
+            return;
+        };
+
+        const randomCustomFieldId = uuidv4();
+
+        const newCustomField = new OrganizationCustomFieldModel({
+            organizationId: findOrganization.organizationId,
+            organizationCustomFieldId: randomCustomFieldId,
+            organizationCustomFieldValues: organizationCustomFieldValues,
+            createdAt: req.currentTime,
+            updatedAt: req.currentTime,
+        });
+
+        try {
+            await newCustomField.save();
+
+            res.status(200).json({
+                status: true,
+                msg: "Custom Field Created Successfully."
+            });
+            return;
+        } catch (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Error While Creating Custom Field."
+            });
+            return;
+        }
+
+    });
+};
+
+export const updateCustomFieldFromHolderSide = async (req: any, res: any) => {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+
+        return;
+    };
+
+    let splitToken = accessToken.split(' ')[1];
+
+    await jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        } else {
+            if (user.role !== 'HOLDER') {
+                res.status(400).json({
+                    status: false,
+                    msg: "Invalid Role."
+                });
+                return;
+            } else {
+                const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID });
+
+                if (!findHolder) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Holder Not Found."
+                    });
+                    return;
+                }
+
+                if (findHolder.organizationHolderIsDeleted === true || findHolder.organizationHolderStatus === false) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Holder Deleted or Blocked."
+                    });
+                    return;
+                }
+
+                const findOrganization = await OrganizationInfoModel.findOne({ organizationId: findHolder.organizationId });
+
+                if (!findOrganization) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Organization Not Found."
+                    });
+
+                    return;
+                }
+
+                const { organizationCustomFieldId, organizationCustomFieldValues } = req.body;
+
+                if (!organizationCustomFieldId || !organizationCustomFieldValues) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Missing Fields, Please check API Documents."
+                    });
+
+                    return;
+                }
+
+                const findCustomField = await OrganizationCustomFieldModel.findOne({ organizationCustomFieldId: organizationCustomFieldId });
+
+                if (!findCustomField) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Custom Field Not Found."
+                    });
+                    return;
+                }
+
+                if (findCustomField.organizationId !== findOrganization.organizationId) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Custom Field Not Found."
+                    });
+                    return;
+                }
+
+                const updatedCustomField = await OrganizationCustomFieldModel.findOneAndUpdate({ organizationCustomFieldId: organizationCustomFieldId }, {
+                    organizationCustomFieldValues: organizationCustomFieldValues,
+                    updatedAt: req.currentTime,
+                });
+
+                res.status(200).json({
+                    status: true,
+                    msg: "Custom Field Updated Successfully."
+                });
+                return;
+            }
+        }
+    });
+};
+
+export const deleteCustomFieldFromHolderSide = async (req: any, res: any) => {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    };
+
+    let splitToken = accessToken.split(' ')[1];
+
+    await jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        } else {
+            if (user.role !== 'HOLDER') {
+                res.status(400).json({
+                    status: false,
+                    msg: "Invalid Role."
+                });
+                return;
+            } else {
+                const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID });
+
+                if (!findHolder) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Holder Not Found."
+                    });
+                    return;
+                }
+
+                if (findHolder.organizationHolderIsDeleted === true || findHolder.organizationHolderStatus === false) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Holder Deleted or Blocked."
+                    });
+                    return;
+                }
+
+                const findOrganization = await OrganizationInfoModel.findOne({ organizationId: findHolder.organizationId });
+
+                if (!findOrganization) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Organization Not Found."
+                    });
+                    return;
+                }
+
+                const { organizationCustomFieldId } = req.body;
+
+                if (!organizationCustomFieldId) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Missing Fields, Please check API Documents."
+                    });
+                    return;
+                }
+
+                const findCustomField = await OrganizationCustomFieldModel.findOne({ organizationCustomFieldId: organizationCustomFieldId });
+
+                if (!findCustomField) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Custom Field Not Found."
+                    });
+                    return;
+                }
+
+                if (findCustomField.organizationId !== findOrganization.organizationId) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Custom Field Not Found."
+                    });
+                    return;
+                }
+
+                const deletedCustomField = await OrganizationCustomFieldModel.findOneAndDelete({ organizationCustomFieldId: organizationCustomFieldId });
+
+                res.status(200).json({
+                    status: true,
+                    msg: "Custom Field Deleted Successfully."
+                });
+                return;
+            }
+        }
+    });
+};
+
+export const getCustomFieldsFromHolderSide = async (req: any, res: any) => {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    };
+
+    let splitToken = accessToken.split(' ')[1];
+
+    await jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        } else {
+            if (user.role !== 'HOLDER') {
+                res.status(400).json({
+                    status: false,
+                    msg: "Invalid Role."
+                });
+                return;
+            } else {
+                const findHolder = await OrganizationHolderModel.findOne({ organizationHolderUID: user.UID });
+
+                if (!findHolder) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Holder Not Found."
+                    });
+                    return;
+                }
+
+                if (findHolder.organizationHolderIsDeleted === true || findHolder.organizationHolderStatus === false) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Holder Deleted or Blocked."
+                    });
+                    return;
+                }
+
+                const findOrganization = await OrganizationInfoModel.findOne({ organizationId: findHolder.organizationId });
+
+                if (!findOrganization) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Organization Not Found."
+                    });
+                    return;
+                }
+
+                const customFields = await OrganizationCustomFieldModel.find({ organizationId: findOrganization.organizationId });
+
+                res.status(200).json({
+                    status: true,
+                    msg: "Custom Fields Fetched Successfully.",
+                    data: customFields
+                });
+                return;
+            }
+        }
+    });
+};
+
+export const getCustomFieldsFromWorkerSide = async (req: any, res: any) => {
+    let accessToken = req.headers.authorization;
+
+    if (!accessToken) {
+        res.status(400).json({
+            status: false,
+            msg: "Missing Fields, Please check API Documents."
+        });
+        return;
+    };
+
+    let splitToken = accessToken.split(' ')[1];
+
+    await jwt.verify(splitToken, process.env.JWT_SECRET!, async (error: any, user: any) => {
+        if (error) {
+            res.status(400).json({
+                status: false,
+                msg: "Invalid Token."
+            });
+            return;
+        } else {
+            if (user.role !== 'WORKER') {
+                res.status(400).json({
+                    status: false,
+                    msg: "Invalid Role."
+                });
+                return;
+            } else {
+                const findWorker = await OrganizationWorkerModel.findOne({ organizationWorkerUID: user.UID });
+
+                if (!findWorker) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Worker Not Found."
+                    });
+                    return;
+                }
+
+                const findOrganization = await OrganizationInfoModel.findOne({ organizationId: findWorker.organizationId });
+
+                if (!findOrganization) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Organization Not Found."
+                    });
+                    return;
+                }
+
+                if (findWorker.organizationId !== findOrganization.organizationId) {
+                    res.status(400).json({
+                        status: false,
+                        msg: "Worker Not Found.",
+                    });
+                    return;
+                }
+
+                const customFields = await OrganizationCustomFieldModel.find({ organizationId: findOrganization.organizationId });
+
+                res.status(200).json({
+                    status: true,
+                    msg: "Custom Fields Fetched Successfully.",
+                    data: customFields
+                });
+                return;
+            }
+        }
+    });
 };

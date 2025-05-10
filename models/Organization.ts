@@ -55,13 +55,23 @@ const OrganizationWorkerSchema = new mongoose.Schema({
     updatedAt: Number,
 });
 
+const OrganizationCustomFieldSchema = new mongoose.Schema({
+    organizationId: String,
+    organizationCustomFieldId: String,
+    organizationCustomFieldValues: Array,
+    createdAt: Number,
+    updatedAt: Number,
+});
+
 const OrganizationInfoModel = mongoose.model("OrganizationInfo", OrganizationInfoSchema);
 const OrganizationHolderModel = mongoose.model("OrganizationHolderInfo", OrganizationHolderSchema);
 const OrganizationWorkerModel = mongoose.model("OrganizationWorkerInfo", OrganizationWorkerSchema);
+const OrganizationCustomFieldModel = mongoose.model("OrganizationCustomField", OrganizationCustomFieldSchema);
 
 export {
     OrganizationInfoModel,
     OrganizationHolderModel,
     OrganizationWorkerModel,
+    OrganizationCustomFieldModel,
 };
 

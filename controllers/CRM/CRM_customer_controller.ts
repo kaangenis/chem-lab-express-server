@@ -86,6 +86,10 @@ export async function createNewCustomerFromWorkerSide(req: any, res: any) {
             customerContactDetails: customerContactDetails,
             customerFinancialDetails: customerFinancialDetails,
             customerSocialMediaDetails: customerSocialMediaDetails,
+            isDeleted: false,
+            status: true,
+            createdAt: req.currentTime,
+            updatedAt: req.currentTime,
         });
 
 
@@ -189,6 +193,10 @@ export async function createNewCustomerFromHolderSide(req: any, res: any) {
             customerContactDetails: customerContactDetails,
             customerFinancialDetails: customerFinancialDetails,
             customerSocialMediaDetails: customerSocialMediaDetails,
+            isDeleted: false,
+            status: true,
+            createdAt: req.currentTime,
+            updatedAt: req.currentTime,
         });
 
 
